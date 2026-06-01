@@ -1,0 +1,19 @@
+{
+    "name": "ufal/aluguel-ms-catalogo",
+    "description": "Microsservico de Catalogo de imoveis do Framework Whitelabel de Aluguel",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "MsCatalogo\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

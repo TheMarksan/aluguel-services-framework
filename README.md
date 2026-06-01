@@ -101,12 +101,38 @@ que define o esqueleto invariável do processo de reserva (Template Method) e ex
 
 ---
 
+## Endpoints (via Gateway)
+
+Todas as rotas abaixo são acessadas pelo Gateway (`http://localhost:8003`),
+que as encaminha ao microsserviço correto via cURL.
+
+### Autenticação — `ms-auth`
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/api/auth/register` | Cria um usuário |
+| POST | `/api/auth/login` | Autentica e retorna um token JWT |
+| GET | `/api/auth/me` | Dados do usuário do token (`Authorization: Bearer`) |
+| POST | `/api/auth/validate` | Valida um token (uso interno) |
+
+### Catálogo — `ms-catalogo`
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/imoveis` | Lista imóveis (filtros: `city`, `type`, `available`) |
+| GET | `/api/imoveis/{id}` | Detalha um imóvel |
+| POST | `/api/imoveis` | Cadastra um imóvel |
+| PUT | `/api/imoveis/{id}` | Atualiza um imóvel |
+| DELETE | `/api/imoveis/{id}` | Remove um imóvel |
+
+---
+
 ## Roadmap de Implementação (Backlog)
 
 - [x] **Etapa 1** — Inicialização (`.gitignore`, `README.md`, Relatório LaTeX)
-- [ ] **Etapa 2** — API Gateway (roteamento stateless + cURL)
-- [ ] **Etapa 3** — `ms-auth` (JWT) + `db_auth`
-- [ ] **Etapa 4** — `ms-catalogo` + `db_catalogo`
+- [x] **Etapa 2** — API Gateway (roteamento stateless + cURL)
+- [x] **Etapa 3** — `ms-auth` (JWT) + `db_auth`
+- [x] **Etapa 4** — `ms-catalogo` + `db_catalogo`
 - [ ] **Etapa 5** — `ms-reservas` + `RentEngine` (Template Method) + `db_reservas`
 - [ ] **Etapa 6** — Classes concretas (`LongTermRent`, `VacationRent`)
 - [ ] **Etapa 7** — Front-end integrado no Gateway (Blade/HTML)

@@ -121,9 +121,9 @@ curta, com entrega versionada (branch + commit) ao final de cada etapa.
     \midrule
     \endhead
     1 (Alta)  & Inicializacao do repositorio: \texttt{.gitignore}, \texttt{README} e relatorio tecnico. & Concluido \\
-    2 (Alta)  & API Gateway: roteamento central \textit{stateless} e comunicacao interna via cURL. & Planejado \\
-    3 (Alta)  & Microsservico de Autenticacao (\texttt{ms-auth}) com JWT e banco \texttt{db\_auth}. & Planejado \\
-    4 (Media) & Microsservico de Catalogo (\texttt{ms-catalogo}) e banco \texttt{db\_catalogo}. & Planejado \\
+    2 (Alta)  & API Gateway: roteamento central \textit{stateless} e comunicacao interna via cURL. & Concluido \\
+    3 (Alta)  & Microsservico de Autenticacao (\texttt{ms-auth}) com JWT e banco \texttt{db\_auth}. & Concluido \\
+    4 (Media) & Microsservico de Catalogo (\texttt{ms-catalogo}) e banco \texttt{db\_catalogo}. & Concluido \\
     5 (Alta)  & Engine de Reservas (\texttt{ms-reservas}): classe abstrata \texttt{RentEngine} (Template Method). & Planejado \\
     6 (Media) & Classes concretas \texttt{LongTermRent} e \texttt{VacationRent}, provando o reuso. & Planejado \\
     7 (Baixa) & Front-end integrado no Gateway (Blade/HTML) consumindo o ecossistema. & Planejado \\
@@ -206,6 +206,22 @@ Point}). Suas caracteristicas principais sao:
     \item \textbf{Apresentacao:} serve as \textit{views} (Blade/HTML) do front-end
     integrado.
 \end{itemize}
+
+\subsection{Microsservico de Autenticacao (ms-auth)}
+O \texttt{ms-auth} (porta 8000, banco \texttt{db\_auth}) e responsavel pela identidade
+do ecossistema. Implementa JWT no algoritmo HS256 de forma autocontida, expondo os
+endpoints \texttt{/register}, \texttt{/login}, \texttt{/me} e \texttt{/validate}. As
+senhas sao armazenadas com \texttt{bcrypt} e o acesso a dados usa PDO com
+\textit{prepared statements}. Por ser stateless, o token viaja em cada requisicao
+(cabecalho \texttt{Authorization}), sendo repassado pelo Gateway aos demais servicos.
+
+\subsection{Microsservico de Catalogo (ms-catalogo)}
+O \texttt{ms-catalogo} (porta 8001, banco \texttt{db\_catalogo}) gerencia o cadastro de
+imoveis (casas e apartamentos) com uma API REST de CRUD: \texttt{GET /} (com filtros por
+cidade, tipo e disponibilidade), \texttt{GET /\{id\}}, \texttt{POST /}, \texttt{PUT
+/\{id\}} e \texttt{DELETE /\{id\}}. O relacionamento com o usuario proprietario
+(\texttt{owner\_id}) e logico, sem chave estrangeira fisica, respeitando o isolamento do
+padrao \textit{Database per Service}.
 
 % ==========================================================================
 \section{Template Method e Hotspots}
