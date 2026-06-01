@@ -125,6 +125,17 @@ que as encaminha ao microsserviço correto via cURL.
 | PUT | `/api/imoveis/{id}` | Atualiza um imóvel |
 | DELETE | `/api/imoveis/{id}` | Remove um imóvel |
 
+### Reservas — `ms-reservas`
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/reservas` | Lista reservas + modalidades suportadas |
+| GET | `/api/reservas/{id}` | Detalha uma reserva |
+| POST | `/api/reservas` | Cria uma reserva (campo `modality` seleciona a engine) |
+
+> A criação de reserva passa pelo Template Method da `RentEngine`. As modalidades
+> concretas (`vacation`, `long_term`) são registradas na Etapa 6.
+
 ---
 
 ## Roadmap de Implementação (Backlog)
@@ -133,7 +144,7 @@ que as encaminha ao microsserviço correto via cURL.
 - [x] **Etapa 2** — API Gateway (roteamento stateless + cURL)
 - [x] **Etapa 3** — `ms-auth` (JWT) + `db_auth`
 - [x] **Etapa 4** — `ms-catalogo` + `db_catalogo`
-- [ ] **Etapa 5** — `ms-reservas` + `RentEngine` (Template Method) + `db_reservas`
+- [x] **Etapa 5** — `ms-reservas` + `RentEngine` (Template Method) + `db_reservas`
 - [ ] **Etapa 6** — Classes concretas (`LongTermRent`, `VacationRent`)
 - [ ] **Etapa 7** — Front-end integrado no Gateway (Blade/HTML)
 

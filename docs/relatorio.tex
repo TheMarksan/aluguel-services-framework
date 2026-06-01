@@ -124,7 +124,7 @@ curta, com entrega versionada (branch + commit) ao final de cada etapa.
     2 (Alta)  & API Gateway: roteamento central \textit{stateless} e comunicacao interna via cURL. & Concluido \\
     3 (Alta)  & Microsservico de Autenticacao (\texttt{ms-auth}) com JWT e banco \texttt{db\_auth}. & Concluido \\
     4 (Media) & Microsservico de Catalogo (\texttt{ms-catalogo}) e banco \texttt{db\_catalogo}. & Concluido \\
-    5 (Alta)  & Engine de Reservas (\texttt{ms-reservas}): classe abstrata \texttt{RentEngine} (Template Method). & Planejado \\
+    5 (Alta)  & Engine de Reservas (\texttt{ms-reservas}): classe abstrata \texttt{RentEngine} (Template Method). & Concluido \\
     6 (Media) & Classes concretas \texttt{LongTermRent} e \texttt{VacationRent}, provando o reuso. & Planejado \\
     7 (Baixa) & Front-end integrado no Gateway (Blade/HTML) consumindo o ecossistema. & Planejado \\
     \bottomrule
@@ -239,24 +239,38 @@ ou \textit{hooks}) representam os pontos de variacao implementados por cada subc
     \textit{hooks}, definidos pelas subclasses.
 \end{description}
 
-\begin{lstlisting}[language=PHP,caption={Esboco do Template Method (a ser implementado na Etapa 5).},label={lst:template}]
+\begin{lstlisting}[language=PHP,caption={Template Method implementado em \texttt{ms-reservas/src/Engine/RentEngine.php}.},label={lst:template}]
 abstract class RentEngine
 {
-    // Template Method: esqueleto invariante (frozen spot)
-    public final function processReservation(array $request): Reservation
+    // TEMPLATE METHOD: esqueleto invariante, final (nao sobrescrevivel)
+    final public function processReservation(ReservationRequest $req): ReservationResult
     {
-        $this->validateAvailability($request);   // frozen
-        $price = $this->calculatePrice($request); // HOTSPOT (abstrato)
-        $this->applyBusinessRules($request);       // HOTSPOT (hook)
-        return $this->persistReservation($request, $price); // frozen
+        $this->validateBaseRequest($req);          // (1) FROZEN
+        $this->ensureAvailability($req);           // (2) FROZEN
+        $price  = $this->calculatePrice($req);     // (3) HOTSPOT (abstrato)
+        $this->applyBusinessRules($req, $price);   // (4) HOTSPOT (hook)
+        $status = $this->resolveStatus($req, $price); // (5) HOTSPOT (hook)
+        $id = $this->repository->create(           // (6) FROZEN: persistencia
+            $req, $this->modalityName(), $price, $status, $this->reservationNotes($req)
+        );
+        $this->afterReservation($id, $req, $price); // (7) HOTSPOT (hook)
+        return new ReservationResult(/* ... */);
     }
 
-    abstract protected function calculatePrice(array $request): float; // hotspot
+    // HOTSPOTS obrigatorios (abstratos)
+    abstract protected function modalityName(): string;
+    abstract protected function calculatePrice(ReservationRequest $req): float;
 
-    // Hook: comportamento default sobrescrevivel
-    protected function applyBusinessRules(array $request): void {}
+    // HOTSPOTS opcionais (hooks com comportamento default)
+    protected function applyBusinessRules(ReservationRequest $req, float $price): void {}
+    protected function resolveStatus(ReservationRequest $req, float $price): string { return 'confirmed'; }
+    protected function afterReservation(int $id, ReservationRequest $req, float $price): void {}
 }
 \end{lstlisting}
+
+A selecao da modalidade concreta ocorre em \texttt{EngineFactory}, ponto unico de
+extensao do framework: registrar uma nova modalidade nao exige alterar o nucleo,
+respeitando o \textit{Open/Closed Principle}.
 
 Na Etapa 6, \texttt{VacationRent} sobrescreve \texttt{calculatePrice()} com tarifas de
 temporada, enquanto \texttt{LongTermRent} adiciona, por composicao, o

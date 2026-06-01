@@ -1,0 +1,19 @@
+{
+    "name": "ufal/aluguel-ms-reservas",
+    "description": "Microsservico de Reservas - Engine do framework (Template Method)",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "MsReservas\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
