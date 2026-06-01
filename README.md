@@ -95,9 +95,28 @@ O coração do framework é a classe abstrata **`RentEngine`** (em `ms-reservas`
 que define o esqueleto invariável do processo de reserva (Template Method) e expõe
 **hotspots** (pontos de variação) para as aplicações concretas:
 
-- **`VacationRent`** — aluguel por temporada.
-- **`LongTermRent`** — aluguel de longa duração, estendido com `CreditCheckComponent`
-  (análise de crédito) — demonstrando reuso por composição.
+- **`VacationRent`** (`modality: vacation`) — aluguel por temporada. Reuso por
+  **herança**: reaproveita o esqueleto e sobrescreve apenas os hotspots mínimos
+  (preço com adicional de alta temporada + taxa de limpeza).
+- **`LongTermRent`** (`modality: long_term`) — aluguel de longa duração. Combina
+  **herança** (preço mensal com desconto para contratos longos) e **composição**:
+  injeta o `CreditCheckComponent` no hook `applyBusinessRules`, que define se a
+  reserva fica `confirmed` ou `pending` conforme a análise de crédito.
+
+Exemplo de criação de reserva de longa duração (via Gateway):
+
+```bash
+curl -X POST http://localhost:8003/api/reservas \
+  -H "Content-Type: application/json" \
+  -d '{
+    "modality": "long_term",
+    "property_id": 1,
+    "check_in": "2026-07-01",
+    "check_out": "2027-07-01",
+    "monthly_rate": 4000,
+    "extras": { "monthly_income": 13000 }
+  }'
+```
 
 ---
 
@@ -145,7 +164,7 @@ que as encaminha ao microsserviço correto via cURL.
 - [x] **Etapa 3** — `ms-auth` (JWT) + `db_auth`
 - [x] **Etapa 4** — `ms-catalogo` + `db_catalogo`
 - [x] **Etapa 5** — `ms-reservas` + `RentEngine` (Template Method) + `db_reservas`
-- [ ] **Etapa 6** — Classes concretas (`LongTermRent`, `VacationRent`)
+- [x] **Etapa 6** — Classes concretas (`LongTermRent`, `VacationRent`)
 - [ ] **Etapa 7** — Front-end integrado no Gateway (Blade/HTML)
 
 ---

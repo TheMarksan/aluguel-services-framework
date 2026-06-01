@@ -125,7 +125,7 @@ curta, com entrega versionada (branch + commit) ao final de cada etapa.
     3 (Alta)  & Microsservico de Autenticacao (\texttt{ms-auth}) com JWT e banco \texttt{db\_auth}. & Concluido \\
     4 (Media) & Microsservico de Catalogo (\texttt{ms-catalogo}) e banco \texttt{db\_catalogo}. & Concluido \\
     5 (Alta)  & Engine de Reservas (\texttt{ms-reservas}): classe abstrata \texttt{RentEngine} (Template Method). & Concluido \\
-    6 (Media) & Classes concretas \texttt{LongTermRent} e \texttt{VacationRent}, provando o reuso. & Planejado \\
+    6 (Media) & Classes concretas \texttt{LongTermRent} e \texttt{VacationRent}, provando o reuso. & Concluido \\
     7 (Baixa) & Front-end integrado no Gateway (Blade/HTML) consumindo o ecossistema. & Planejado \\
     \bottomrule
     \caption{Product Backlog priorizado do framework.}
@@ -271,6 +271,57 @@ abstract class RentEngine
 A selecao da modalidade concreta ocorre em \texttt{EngineFactory}, ponto unico de
 extensao do framework: registrar uma nova modalidade nao exige alterar o nucleo,
 respeitando o \textit{Open/Closed Principle}.
+
+\subsection{Classes Concretas e Prova de Reuso}
+Duas modalidades concretas instanciam o framework, reaproveitando o mesmo Template
+Method e variando apenas os hotspots:
+
+\begin{description}[leftmargin=1.5cm]
+    \item[\texttt{VacationRent} (temporada)] Reuso por \textbf{heranca}: sobrescreve
+    somente os hotspots obrigatorios (\texttt{modalityName} e \texttt{calculatePrice}),
+    aplicando adicional de alta temporada para estadias curtas e taxa de limpeza.
+    Os hooks opcionais usam o comportamento default da \texttt{RentEngine}.
+    \item[\texttt{LongTermRent} (longa duracao)] Combina \textbf{heranca} e
+    \textbf{composicao}: calcula o preco mensal com desconto para contratos longos e
+    injeta o \texttt{CreditCheckComponent} no hook \texttt{applyBusinessRules}. O
+    resultado da analise de credito governa o hook \texttt{resolveStatus}
+    (\texttt{confirmed} se aprovado, \texttt{pending} caso contrario).
+\end{description}
+
+A Tabela~\ref{tab:reuso} resume como cada modalidade exercita os pontos do framework.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l c c}
+        \toprule
+        \textbf{Ponto do framework} & \textbf{VacationRent} & \textbf{LongTermRent} \\
+        \midrule
+        \texttt{calculatePrice} (abstract) & sobrescrito (diaria) & sobrescrito (mensal) \\
+        \texttt{applyBusinessRules} (hook)  & default (vazio)      & credit check (composicao) \\
+        \texttt{resolveStatus} (hook)       & default (confirmed)  & dinamico (credito) \\
+        Esqueleto (frozen spots)            & reutilizado          & reutilizado \\
+        \bottomrule
+    \end{tabular}
+    \caption{Reuso dos pontos do framework por modalidade.}
+    \label{tab:reuso}
+\end{table}
+
+\begin{lstlisting}[language=PHP,caption={Reuso por composicao: credit check no hook do LongTermRent.},label={lst:longterm}]
+final class LongTermRent extends RentEngine
+{
+    public function __construct(
+        ReservationRepository $repository,
+        private readonly CreditCheckComponent $creditCheck = new CreditCheckComponent()
+    ) { parent::__construct($repository); }
+
+    protected function applyBusinessRules(ReservationRequest $req, float $price): void {
+        $this->creditResult = $this->creditCheck->evaluate($req); // COMPOSICAO
+    }
+    protected function resolveStatus(ReservationRequest $req, float $price): string {
+        return $this->creditResult['approved'] ? 'confirmed' : 'pending';
+    }
+}
+\end{lstlisting}
 
 Na Etapa 6, \texttt{VacationRent} sobrescreve \texttt{calculatePrice()} com tarifas de
 temporada, enquanto \texttt{LongTermRent} adiciona, por composicao, o
