@@ -1,0 +1,97 @@
+# ==========================================================================
+# .gitignore - Monorepo Framework Whitelabel de Aluguel
+# Estrutura: /gateway | /ms-auth | /ms-catalogo | /ms-reservas
+# ==========================================================================
+
+# --------------------------------------------------------------------------
+# Dependencias do Composer (vendor por microsservico, de forma independente)
+# --------------------------------------------------------------------------
+/vendor/
+/gateway/vendor/
+/ms-auth/vendor/
+/ms-catalogo/vendor/
+/ms-reservas/vendor/
+
+# Lock files do Composer (mantenha composer.json versionado)
+# Obs.: composer.lock pode ser versionado em apps. Por padrao no framework, ignoramos.
+**/composer.lock
+
+# --------------------------------------------------------------------------
+# Variaveis de ambiente / Configuracao sensivel
+# --------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+/gateway/.env
+/ms-auth/.env
+/ms-catalogo/.env
+/ms-reservas/.env
+
+# Chaves e segredos (JWT, certificados)
+*.pem
+*.key
+*.crt
+secrets/
+
+# --------------------------------------------------------------------------
+# Logs de runtime
+# --------------------------------------------------------------------------
+*.log
+logs/
+**/logs/
+**/storage/logs/
+runtime/
+
+# --------------------------------------------------------------------------
+# Cache e arquivos temporarios (Blade compilado, cache de framework)
+# --------------------------------------------------------------------------
+**/storage/framework/cache/
+**/storage/framework/views/
+**/storage/framework/sessions/
+**/bootstrap/cache/*.php
+*.cache
+.tmp/
+tmp/
+
+# --------------------------------------------------------------------------
+# IDEs e Editores (VS Code, Cursor, JetBrains/PhpStorm)
+# --------------------------------------------------------------------------
+.vscode/
+.cursor/
+.cursorignore
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# --------------------------------------------------------------------------
+# Sistema Operacional
+# --------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --------------------------------------------------------------------------
+# Artefatos de compilacao LaTeX (relatorio tecnico)
+# --------------------------------------------------------------------------
+*.aux
+*.lof
+*.lot
+*.toc
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.run.xml
+*.bcf
+docs/*.pdf
+
+# --------------------------------------------------------------------------
+# Banco de dados local / dumps temporarios
+# --------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+dump.sql

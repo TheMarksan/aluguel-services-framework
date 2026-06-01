@@ -1,0 +1,294 @@
+% ==========================================================================
+% Relatorio Tecnico - Padrao UFAL
+% Framework Whitelabel para Sistemas Online de Aluguel de Casas e Apartamentos
+% Disciplina: Reuso de Software e Metodologias Ageis - 2026.1
+% Alunos: Marcos Melo dos Santos e Leonardo Barbosa
+%
+% Compilacao: pdflatex relatorio.tex (rodar 2x para sumario/referencias)
+% ==========================================================================
+\documentclass[12pt,a4paper]{article}
+
+% ----------------------------- Pacotes ------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+
+% --------------------------- Hyperlinks -----------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    pdftitle={Framework Whitelabel de Aluguel - UFAL 2026.1},
+    pdfauthor={Marcos Melo dos Santos e Leonardo Barbosa}
+}
+
+% ------------------------- Estilo de codigo -------------------------------
+\definecolor{codegray}{rgb}{0.95,0.95,0.95}
+\definecolor{codegreen}{rgb}{0,0.5,0}
+\definecolor{codeblue}{rgb}{0,0,0.7}
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{codeblue}\bfseries,
+    commentstyle=\color{codegreen}\itshape,
+    breaklines=true,
+    frame=single,
+    showstringspaces=false,
+    tabsize=2,
+    captionpos=b
+}
+
+% ------------------------- Cabecalho/Rodape -------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Framework Whitelabel de Aluguel}
+\rhead{\small UFAL 2026.1}
+\cfoot{\thepage}
+
+% ==========================================================================
+\begin{document}
+
+% ----------------------------- Capa ---------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\Large \textbf{UNIVERSIDADE FEDERAL DE ALAGOAS}}\\[0.3cm]
+    {\large Instituto de Computacao}\\[2.5cm]
+
+    {\Huge \textbf{Framework Whitelabel para Sistemas Online de Aluguel de Casas e Apartamentos}}\\[0.5cm]
+    {\large Relatorio Tecnico de Desenvolvimento}\\[3cm]
+
+    \begin{flushright}
+        \begin{minipage}{0.6\textwidth}
+            \textbf{Alunos:}\\
+            Marcos Melo dos Santos\\
+            Leonardo Barbosa\\[1cm]
+            \textbf{Disciplina:}\\
+            Reuso de Software e Metodologias Ageis\\[1cm]
+            \textbf{Periodo:} 2026.1
+        \end{minipage}
+    \end{flushright}
+
+    \vfill
+    {\large Maceio -- Alagoas\\ 2026}
+\end{titlepage}
+
+% ---------------------------- Sumario -------------------------------------
+\tableofcontents
+\newpage
+
+% ==========================================================================
+\section{Enunciado do Problema}
+% ==========================================================================
+O presente trabalho tem como objetivo o desenvolvimento de um \textbf{Framework
+Whitelabel} para a construcao de sistemas online de aluguel de casas e apartamentos.
+Um produto \textit{whitelabel} e aquele que pode ser reaproveitado e customizado por
+diferentes clientes (imobiliarias, plataformas de temporada, redes de coliving),
+mantendo um nucleo comum de regras de negocio.
+
+O desafio central, do ponto de vista de \textbf{Reuso de Software}, e projetar uma
+arquitetura que maximize o reaproveitamento do fluxo de reserva, ao mesmo tempo em que
+permita variacoes especificas de cada modalidade de locacao. Para isso, adota-se o
+padrao de projeto \textit{Template Method}, que define o esqueleto invariante do
+algoritmo de reserva e delega passos variaveis (\textit{hotspots}) para subclasses.
+
+O sistema e estruturado como um \textbf{monorepo} de microsservicos em PHP 8.2 e MySQL,
+contemplando autenticacao, catalogo de imoveis e a engine de reservas, integrados por
+um \textit{API Gateway}.
+
+% ==========================================================================
+\section{Planejamento Scrum por Prioridades}
+% ==========================================================================
+O desenvolvimento seguiu uma abordagem agil incremental, organizada em um
+\textit{Product Backlog} priorizado. Cada item foi tratado como uma \textit{Sprint}
+curta, com entrega versionada (branch + commit) ao final de cada etapa.
+
+\begin{longtable}{c p{7.5cm} c}
+    \toprule
+    \textbf{Prioridade} & \textbf{Item do Backlog (User Story)} & \textbf{Status} \\
+    \midrule
+    \endhead
+    1 (Alta)  & Inicializacao do repositorio: \texttt{.gitignore}, \texttt{README} e relatorio tecnico. & Concluido \\
+    2 (Alta)  & API Gateway: roteamento central \textit{stateless} e comunicacao interna via cURL. & Planejado \\
+    3 (Alta)  & Microsservico de Autenticacao (\texttt{ms-auth}) com JWT e banco \texttt{db\_auth}. & Planejado \\
+    4 (Media) & Microsservico de Catalogo (\texttt{ms-catalogo}) e banco \texttt{db\_catalogo}. & Planejado \\
+    5 (Alta)  & Engine de Reservas (\texttt{ms-reservas}): classe abstrata \texttt{RentEngine} (Template Method). & Planejado \\
+    6 (Media) & Classes concretas \texttt{LongTermRent} e \texttt{VacationRent}, provando o reuso. & Planejado \\
+    7 (Baixa) & Front-end integrado no Gateway (Blade/HTML) consumindo o ecossistema. & Planejado \\
+    \bottomrule
+    \caption{Product Backlog priorizado do framework.}
+\end{longtable}
+
+\subsection{Justificativa das Prioridades}
+Os itens de infraestrutura e seguranca (Gateway e Autenticacao) recebem prioridade
+alta por serem dependencias transversais. A engine de reservas, sendo o nucleo de
+reuso e o diferencial academico do trabalho, tambem possui prioridade alta. O catalogo
+e as classes concretas dependem dessas bases, e o front-end e a camada de apresentacao
+final, com prioridade mais baixa por nao bloquear as demais entregas.
+
+% ==========================================================================
+\section{Tecnicas de Reuso de Software Aplicadas}
+% ==========================================================================
+O projeto aplica multiplas tecnicas de reuso, em diferentes niveis de granularidade:
+
+\begin{description}[leftmargin=1.5cm]
+    \item[Frameworks de Aplicacao] O proprio produto e um \textit{framework whitelabel}:
+    fornece um esqueleto reutilizavel que e instanciado por diferentes aplicacoes de aluguel.
+    \item[Padroes de Projeto] Uso do \textit{Template Method} para fixar o fluxo de
+    reserva e variar passos especificos via \textit{hotspots}.
+    \item[Reuso por Heranca] As modalidades \texttt{VacationRent} e \texttt{LongTermRent}
+    herdam de \texttt{RentEngine}, reaproveitando o algoritmo comum.
+    \item[Reuso por Composicao] A funcionalidade \texttt{CreditCheckComponent} e injetada
+    em \texttt{LongTermRent} por composicao, evitando heranca rigida e favorecendo flexibilidade.
+    \item[Reuso de Servicos (SOA)] A arquitetura de microsservicos permite que
+    autenticacao e catalogo sejam reutilizados por qualquer cliente do ecossistema.
+\end{description}
+
+% ==========================================================================
+\section{Arquitetura da Solucao}
+% ==========================================================================
+A solucao adota uma arquitetura de \textbf{microsservicos} em \textit{monorepo},
+com isolamento de dados (\textit{Database per Service}). O cliente comunica-se
+exclusivamente com o Gateway, que orquestra as chamadas internas.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l c l l}
+        \toprule
+        \textbf{Servico} & \textbf{Porta} & \textbf{Banco} & \textbf{Responsabilidade} \\
+        \midrule
+        \texttt{gateway}     & 8003 & ---            & Roteamento e composicao (cURL) \\
+        \texttt{ms-auth}     & 8000 & \texttt{db\_auth}     & Autenticacao JWT \\
+        \texttt{ms-catalogo} & 8001 & \texttt{db\_catalogo} & Catalogo de imoveis \\
+        \texttt{ms-reservas} & 8002 & \texttt{db\_reservas} & Engine de reservas \\
+        \bottomrule
+    \end{tabular}
+    \caption{Mapeamento de servicos, portas e bancos de dados.}
+\end{table}
+
+\begin{lstlisting}[caption={Topologia logica de comunicacao.},label={lst:topologia}]
+[ Cliente / Browser ]
+         |
+         v
+[ API Gateway :8003 ]  --- stateless, roteia via cURL
+   |        |        |
+   v        v        v
+ms-auth  ms-catalogo  ms-reservas
+ :8000      :8001        :8002
+db_auth   db_catalogo  db_reservas
+\end{lstlisting}
+
+% ==========================================================================
+\section{API Gateway}
+% ==========================================================================
+O \textit{API Gateway} e o unico ponto de entrada do sistema (\textit{Single Entry
+Point}). Suas caracteristicas principais sao:
+
+\begin{itemize}
+    \item \textbf{Stateless:} nao mantem estado de sessao; cada requisicao carrega o
+    token JWT necessario, repassado aos microsservicos.
+    \item \textbf{Roteamento:} mapeia rotas externas (ex.: \texttt{/api/imoveis}) para
+    os servicos internos correspondentes.
+    \item \textbf{Comunicacao via cURL:} as chamadas internas sao feitas por HTTP com a
+    extensao cURL do PHP nativo, mantendo baixo acoplamento.
+    \item \textbf{Apresentacao:} serve as \textit{views} (Blade/HTML) do front-end
+    integrado.
+\end{itemize}
+
+% ==========================================================================
+\section{Template Method e Hotspots}
+% ==========================================================================
+O nucleo de reuso e a classe abstrata \texttt{RentEngine}. Ela implementa o
+\textbf{Template Method} \texttt{processReservation()}, que fixa a sequencia
+invariante de passos do processo de reserva. Os \textbf{hotspots} (metodos abstratos
+ou \textit{hooks}) representam os pontos de variacao implementados por cada subclasse.
+
+\begin{description}[leftmargin=1.5cm]
+    \item[Frozen Spots] Passos fixos: validacao de disponibilidade, persistencia da
+    reserva e confirmacao. Sao implementados na classe abstrata e nao mudam.
+    \item[Hot Spots] Passos variaveis: calculo de preco, regras de validacao
+    especificas e etapas opcionais (ex.: analise de credito). Sao abstratos ou
+    \textit{hooks}, definidos pelas subclasses.
+\end{description}
+
+\begin{lstlisting}[language=PHP,caption={Esboco do Template Method (a ser implementado na Etapa 5).},label={lst:template}]
+abstract class RentEngine
+{
+    // Template Method: esqueleto invariante (frozen spot)
+    public final function processReservation(array $request): Reservation
+    {
+        $this->validateAvailability($request);   // frozen
+        $price = $this->calculatePrice($request); // HOTSPOT (abstrato)
+        $this->applyBusinessRules($request);       // HOTSPOT (hook)
+        return $this->persistReservation($request, $price); // frozen
+    }
+
+    abstract protected function calculatePrice(array $request): float; // hotspot
+
+    // Hook: comportamento default sobrescrevivel
+    protected function applyBusinessRules(array $request): void {}
+}
+\end{lstlisting}
+
+Na Etapa 6, \texttt{VacationRent} sobrescreve \texttt{calculatePrice()} com tarifas de
+temporada, enquanto \texttt{LongTermRent} adiciona, por composicao, o
+\texttt{CreditCheckComponent} dentro do \textit{hook} \texttt{applyBusinessRules()},
+demonstrando a combinacao de reuso por heranca e por composicao.
+
+% ==========================================================================
+\section{Guia do Desenvolvedor}
+% ==========================================================================
+\subsection{Pre-requisitos}
+PHP 8.2+ (extensoes \texttt{pdo\_mysql}, \texttt{curl}, \texttt{json}), MySQL 8.0+ e
+Composer 2.x.
+
+\subsection{Subindo os Servicos}
+Em terminais separados:
+\begin{lstlisting}[language=bash]
+cd ms-auth      && composer install && php -S localhost:8000 -t public
+cd ms-catalogo  && composer install && php -S localhost:8001 -t public
+cd ms-reservas  && composer install && php -S localhost:8002 -t public
+cd gateway      && composer install && php -S localhost:8003 -t public
+\end{lstlisting}
+
+\subsection{Criando os Bancos}
+\begin{lstlisting}[language=bash]
+mysql -u root -p < ms-auth/sql/db_auth.sql
+mysql -u root -p < ms-catalogo/sql/db_catalogo.sql
+mysql -u root -p < ms-reservas/sql/db_reservas.sql
+\end{lstlisting}
+
+\subsection{Como Estender o Framework}
+Para criar uma nova modalidade de aluguel, basta criar uma subclasse de
+\texttt{RentEngine} e implementar os \textit{hotspots}, sem alterar o fluxo principal,
+respeitando o \textit{Open/Closed Principle}.
+
+% ==========================================================================
+\section{Referencias}
+% ==========================================================================
+\begin{thebibliography}{9}
+\bibitem{gof} GAMMA, E. et al. \textit{Design Patterns: Elements of Reusable
+Object-Oriented Software}. Addison-Wesley, 1994.
+\bibitem{sommerville} SOMMERVILLE, I. \textit{Engenharia de Software}. 10. ed.
+Pearson, 2018.
+\bibitem{newman} NEWMAN, S. \textit{Building Microservices}. 2. ed. O'Reilly, 2021.
+\bibitem{schwaber} SCHWABER, K.; SUTHERLAND, J. \textit{The Scrum Guide}. 2020.
+\bibitem{fowler} FOWLER, M. \textit{Patterns of Enterprise Application Architecture}.
+Addison-Wesley, 2002.
+\bibitem{php} PHP DOCUMENTATION. \textit{PHP 8.2 Manual}. Disponivel em:
+\url{https://www.php.net/manual/}. Acesso em: 2026.
+\end{thebibliography}
+
+\end{document}
