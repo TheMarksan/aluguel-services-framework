@@ -17,6 +17,16 @@ rápida de plataformas de aluguel de imóveis (white-label). O núcleo do reuso 
 | **Disciplina** | Reuso de Software e Metodologias Ágeis |
 | **Alunos** | Marcos Melo dos Santos e Leonardo Barbosa |
 
+### Divisão de Escopo (Dupla)
+
+| Aluno | Responsabilidade |
+|-------|------------------|
+| **Marcos Melo dos Santos** | Gateway, núcleo de Reservas (`RentEngine` / Template Method) e Front-end integrado (baseado em Figma via MCP) |
+| **Leonardo Barbosa** | Persistência e lógica interna dos serviços de **Auth** e **Catálogo** (banco de dados, autorização e criptografia) |
+
+> O ecossistema roda de ponta a ponta. Os pontos sob responsabilidade do Leonardo que
+> ainda não foram finalizados estão listados na seção **[Pendências de Implementação](#pendências-de-implementação-leonardo)**.
+
 ---
 
 ## Arquitetura (Monorepo)
@@ -170,6 +180,38 @@ que as encaminha ao microsserviço correto via cURL.
 - [x] **Etapa 5** — `ms-reservas` + `RentEngine` (Template Method) + `db_reservas`
 - [x] **Etapa 6** — Classes concretas (`LongTermRent`, `VacationRent`)
 - [x] **Etapa 7** — Front-end integrado no Gateway (Blade/HTML)
+
+---
+
+## Pendências de Implementação (Leonardo)
+
+Esta seção lista **apenas o que realmente falta** nas partes sob responsabilidade do
+Leonardo (lógica interna e persistência de **Auth** e **Catálogo**). O restante do
+ecossistema (Gateway, Reservas/`RentEngine` e Front-end) está funcional.
+
+> O código de Auth e Catálogo **já existe** (rotas, PDO, bcrypt e JWT HS256), porém os
+> itens abaixo precisam ser concluídos/validados para uma operação real e segura.
+
+### Configuração e Provisionamento (Auth + Catálogo)
+- [ ] Criar os arquivos `.env` reais a partir dos `.env.example` (hoje só existem os exemplos).
+- [ ] Definir um `JWT_SECRET` forte em `ms-auth/.env` (atualmente é um placeholder).
+- [ ] Provisionar e validar os bancos em um MySQL real (`db_auth`, `db_catalogo`) executando os scripts de `*/sql/`.
+
+### Autenticação (`ms-auth`)
+- [ ] **Aplicar autorização por papéis (`role`)**: o campo existe no schema, mas não é verificado em nenhuma rota.
+- [ ] Substituir o hash fixo do admin no `db_auth.sql` por um seed/migração que gere o hash em tempo de execução.
+- [ ] Fluxo de sessão completo: refresh token e logout/revogação (hoje há apenas validação de `exp`).
+- [ ] Mapear erros de banco (`PDOException`) para respostas HTTP amigáveis.
+
+### Catálogo (`ms-catalogo`)
+- [ ] **Proteger os endpoints de escrita** (`POST`/`PUT`/`DELETE /api/imoveis`): atualmente estão abertos, sem checagem de token/role.
+- [ ] Vincular `owner_id` ao usuário autenticado (hoje é aceito direto do payload).
+- [ ] Paginação e ordenação na listagem (hoje retorna todos os registros).
+- [ ] Validações de negócio adicionais (preços não-negativos, tipos, etc.).
+
+### Integração de Segurança (limite entre as duas partes)
+- [ ] Acionar `POST /api/auth/validate` como middleware nas rotas protegidas: o Gateway hoje
+      apenas **repassa** o header `Authorization`, sem validar o token antes de encaminhar.
 
 ---
 

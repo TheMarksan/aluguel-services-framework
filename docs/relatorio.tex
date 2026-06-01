@@ -74,7 +74,9 @@
         \begin{minipage}{0.6\textwidth}
             \textbf{Alunos:}\\
             Marcos Melo dos Santos\\
-            Leonardo Barbosa\\[1cm]
+            {\small (Gateway, Reservas Core e Front-end via Figma/MCP)}\\
+            Leonardo Barbosa\\
+            {\small (Persistencia e logica interna de Auth e Catalogo)}\\[1cm]
             \textbf{Disciplina:}\\
             Reuso de Software e Metodologias Ageis\\[1cm]
             \textbf{Periodo:} 2026.1
@@ -376,6 +378,37 @@ mysql -u root -p < ms-reservas/sql/db_reservas.sql
 Para criar uma nova modalidade de aluguel, basta criar uma subclasse de
 \texttt{RentEngine} e implementar os \textit{hotspots}, sem alterar o fluxo principal,
 respeitando o \textit{Open/Closed Principle}.
+
+% ==========================================================================
+\section{Divisao de Responsabilidades e Pendencias}
+% ==========================================================================
+O trabalho foi conduzido em dupla, com divisao clara de escopo. \textbf{Marcos Melo dos
+Santos} ficou responsavel pelo \textit{API Gateway}, pelo nucleo de reuso (a engine
+\texttt{RentEngine} com Template Method e suas modalidades concretas) e pelo front-end
+integrado. \textbf{Leonardo Barbosa} ficou responsavel pela persistencia e pela logica
+interna dos servicos de \textbf{Autenticacao} e \textbf{Catalogo} (banco de dados,
+autorizacao e criptografia).
+
+O ecossistema executa de ponta a ponta. Contudo, alguns pontos sob responsabilidade do
+Leonardo ainda precisam ser concluidos ou validados para uma operacao real e segura. Vale
+notar que o codigo de Auth e Catalogo \textit{ja existe} (rotas, PDO, \texttt{bcrypt} e
+JWT HS256); os itens da Tabela~\ref{tab:pendencias} representam o que efetivamente resta.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l p{8.5cm}}
+        \toprule
+        \textbf{Area} & \textbf{Pendencia} \\
+        \midrule
+        Config.     & Criar \texttt{.env} reais; definir \texttt{JWT\_SECRET} forte; provisionar/validar \texttt{db\_auth} e \texttt{db\_catalogo} em MySQL real. \\
+        Auth        & Aplicar autorizacao por papel (\texttt{role}); seed do admin sem hash fixo; refresh/logout (revogacao); mapear \texttt{PDOException} para HTTP. \\
+        Catalogo    & Proteger escrita (\texttt{POST/PUT/DELETE}) com token/role; vincular \texttt{owner\_id} ao usuario autenticado; paginacao/ordenacao na listagem. \\
+        Integracao  & Acionar \texttt{POST /api/auth/validate} como \textit{middleware}: o Gateway hoje apenas repassa o cabecalho \texttt{Authorization}, sem validar o token. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Pendencias reais sob responsabilidade do Leonardo (Auth e Catalogo).}
+    \label{tab:pendencias}
+\end{table}
 
 % ==========================================================================
 \section{Referencias}
