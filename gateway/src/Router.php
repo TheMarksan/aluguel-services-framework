@@ -70,7 +70,7 @@ final class Router
     }
 
     /**
-     * Renderiza uma view simples (placeholder ate a Etapa 7).
+     * Renderiza uma view (HTML/Blade simples) do front-end integrado.
      */
     private function handleView(string $path): void
     {

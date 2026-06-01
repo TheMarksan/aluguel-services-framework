@@ -74,6 +74,10 @@ cd gateway      && composer install && php -S localhost:8003 -t public
 
 Acesse a aplicação em: **http://localhost:8003**
 
+A interface web (servida pelo Gateway) permite **login**, **listagem/filtro de imóveis**
+e **criação de reservas** nas duas modalidades, consumindo todo o ecossistema via
+`/api/*`. Login do seed: `admin@aluguel.dev` / `admin123`.
+
 ---
 
 ## Banco de Dados
@@ -165,7 +169,7 @@ que as encaminha ao microsserviço correto via cURL.
 - [x] **Etapa 4** — `ms-catalogo` + `db_catalogo`
 - [x] **Etapa 5** — `ms-reservas` + `RentEngine` (Template Method) + `db_reservas`
 - [x] **Etapa 6** — Classes concretas (`LongTermRent`, `VacationRent`)
-- [ ] **Etapa 7** — Front-end integrado no Gateway (Blade/HTML)
+- [x] **Etapa 7** — Front-end integrado no Gateway (Blade/HTML)
 
 ---
 
