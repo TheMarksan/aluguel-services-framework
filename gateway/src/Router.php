@@ -70,10 +70,23 @@ final class Router
     }
 
     /**
-     * Renderiza uma view (HTML/Blade simples) do front-end integrado.
+     * Renderiza views HTML do front-end (SPA via hash routing em home.php).
+     * Rotas amigaveis /imovel, /meus-anuncios etc. também servem home.php.
      */
     private function handleView(string $path): void
     {
+        $spaRoutes = ['', 'imovel', 'meus-anuncios', 'reservas'];
+        $segment   = $path === '/' ? '' : explode('/', trim($path, '/'))[0];
+
+        if (in_array($segment, $spaRoutes, true)) {
+            $file = $this->viewsPath . '/home.php';
+            if (is_file($file)) {
+                header('Content-Type: text/html; charset=utf-8');
+                require $file;
+                return;
+            }
+        }
+
         $view = $path === '/' ? 'home' : trim($path, '/');
         $file = $this->viewsPath . '/' . basename($view) . '.php';
 
