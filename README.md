@@ -84,9 +84,21 @@ cd gateway      && composer install && php -S localhost:8003 -t public
 
 Acesse a aplicação em: **http://localhost:8003**
 
-A interface web (servida pelo Gateway) permite **login**, **listagem/filtro de imóveis**
-e **criação de reservas** nas duas modalidades, consumindo todo o ecossistema via
-`/api/*`. Login do seed: `admin@aluguel.dev` / `admin123`.
+A interface web (servida pelo Gateway) inclui **hero com busca avançada**, filtros por
+tipo/local/preço/quartos, cards de imóveis e fluxo de reservas. Consome todo o
+ecossistema via `/api/*`. Login do seed: `admin@aluguel.dev` / `admin123`.
+
+### Front-end (Design via Figma MCP)
+
+O layout foi derivado da fusão de dois kits da Figma Community, extraídos via MCP
+(`get_figma_data`), com **paleta de cores própria** (identidade UFAL):
+
+| Referência Figma | Elementos reutilizados |
+|------------------|------------------------|
+| [M-Rent — Property Management](https://www.figma.com/design/C7kvO7HltB2PsnpfAyBndG/) | Cards de imóvel (12px), listagem, filtros por tipo |
+| [Estatery — Real Estate SaaS UI Kit](https://www.figma.com/design/M2Aw6pJ8HQN6xssgFc4hgj/) | Hero, Search Bar, tabs, barra de resultados |
+
+Arquivos: `gateway/views/home.php` + `gateway/public/assets/css/app.css`
 
 ---
 

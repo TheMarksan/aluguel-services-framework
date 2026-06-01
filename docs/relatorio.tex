@@ -228,23 +228,29 @@ padrao \textit{Database per Service}.
 % ==========================================================================
 \section{Front-End Integrado}
 % ==========================================================================
-A camada de apresentacao e servida pelo proprio Gateway (porta 8003) como uma view
-HTML/JavaScript, sem expor os microsservicos diretamente ao navegador. O front-end
-consome exclusivamente as rotas \texttt{/api/*}, exercitando todo o ecossistema:
+A camada de apresentacao e servida pelo proprio Gateway (porta 8003). O design foi
+derivado via \textbf{Figma MCP} (\texttt{get\_figma\_data}), mesclando dois kits da
+Figma Community com paleta de cores propria (identidade UFAL):
 
 \begin{itemize}
-    \item \textbf{Autenticacao:} login via \texttt{POST /api/auth/login}; o token JWT
-    e armazenado no \texttt{localStorage} e reenviado no cabecalho \texttt{Authorization}
-    a cada requisicao, reforcando o carater \textit{stateless} do servidor.
-    \item \textbf{Catalogo:} listagem e filtro de imoveis via \texttt{GET /api/imoveis}.
-    \item \textbf{Reservas:} criacao via \texttt{POST /api/reservas}, permitindo escolher
-    a modalidade (temporada ou longa duracao). Para longa duracao, a interface coleta a
-    renda mensal, exibindo o status retornado pela analise de credito (\texttt{confirmed}
-    ou \texttt{pending}).
+    \item \textbf{M-Rent} (Property Management): cards de imovel com \textit{border-radius}
+    12px, badges de tipo e estrutura de listagem com filtros.
+    \item \textbf{Estatery} (Real Estate SaaS UI Kit): \textit{hero}, \textit{Search Bar},
+    abas por tipo de imovel e barra de resultados.
 \end{itemize}
 
-Toda a comunicacao trafega pelo Gateway, que reencaminha as chamadas via cURL,
-mantendo o front-end desacoplado da topologia interna dos servicos.
+A view consome exclusivamente as rotas \texttt{/api/*}:
+
+\begin{itemize}
+    \item \textbf{Autenticacao:} login via \texttt{POST /api/auth/login}; token JWT no
+    \texttt{localStorage}, reenviado em \texttt{Authorization}.
+    \item \textbf{Catalogo:} busca com filtros de API (\texttt{city}, \texttt{type},
+    \texttt{available}) e filtros client-side (preco, quartos, area, ordenacao).
+    \item \textbf{Reservas:} criacao via \texttt{POST /api/reservas} com modalidades
+    \texttt{vacation} e \texttt{long\_term}.
+\end{itemize}
+
+Assets em \texttt{gateway/public/assets/css/app.css} e \texttt{gateway/views/home.php}.
 
 % ==========================================================================
 \section{Template Method e Hotspots}
