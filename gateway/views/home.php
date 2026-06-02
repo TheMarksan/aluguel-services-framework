@@ -9,8 +9,8 @@
 <body>
     <header class="site-header">
         <a class="logo" href="#/">
-            <span class="logo-mark" aria-hidden="true">&#8962;</span>
-            <span>Aluguel<small>Framework Whitelabel &middot; UFAL 2026.1</small></span>
+            <span class="logo-mark" aria-hidden="true">A</span>
+            <span>Aluguel Hub<small>Framework Whitelabel &middot; UFAL</small></span>
         </a>
         <nav class="app-nav" aria-label="Principal">
             <button type="button" data-nav="explore" class="active">Explorar</button>
@@ -28,8 +28,9 @@
     <!-- Hero + busca (somente na view Explorar) -->
     <section class="hero" id="hero-section">
         <div class="hero-inner">
-            <h1>Encontre o im&oacute;vel ideal para alugar</h1>
-            <p>Busca com filtros por faixa de pre&ccedil;o, &aacute;rea e quartos. Temporada ou longa dura&ccedil;&atilde;o.</p>
+            <div class="hero-kicker">Casas, apartamentos e reservas em um so fluxo</div>
+            <h1>Encontre o im&oacute;vel certo com uma busca mais esperta</h1>
+            <p>Compare pre&ccedil;os, &aacute;rea, quartos e disponibilidade em uma interface pronta para white-label.</p>
 
             <div class="search-panel">
                 <div class="search-tabs" role="tablist">
@@ -72,6 +73,10 @@
                         <div class="range-field">
                             <label>Di&aacute;ria (R$)</label>
                             <div class="range-values" id="f-daily-lbl">R$ 0,00 — R$ 10.000,00</div>
+                            <div class="range-number-row">
+                                <input type="number" id="f-daily-min-num" min="0" placeholder="Min.">
+                                <input type="number" id="f-daily-max-num" min="0" placeholder="Max.">
+                            </div>
                             <div class="range-dual">
                                 <input type="range" id="f-daily-min" value="0">
                                 <input type="range" id="f-daily-max" value="10000">
@@ -80,6 +85,10 @@
                         <div class="range-field">
                             <label>Mensal (R$)</label>
                             <div class="range-values" id="f-monthly-lbl">R$ 0,00 — R$ 50.000,00</div>
+                            <div class="range-number-row">
+                                <input type="number" id="f-monthly-min-num" min="0" placeholder="Min.">
+                                <input type="number" id="f-monthly-max-num" min="0" placeholder="Max.">
+                            </div>
                             <div class="range-dual">
                                 <input type="range" id="f-monthly-min" value="0">
                                 <input type="range" id="f-monthly-max" value="50000">
@@ -88,6 +97,10 @@
                         <div class="range-field">
                             <label>&Aacute;rea (m&sup2;)</label>
                             <div class="range-values" id="f-area-lbl">0 — 500</div>
+                            <div class="range-number-row">
+                                <input type="number" id="f-area-min-num" min="0" placeholder="Min.">
+                                <input type="number" id="f-area-max-num" min="0" placeholder="Max.">
+                            </div>
                             <div class="range-dual">
                                 <input type="range" id="f-area-min" value="0">
                                 <input type="range" id="f-area-max" value="500">

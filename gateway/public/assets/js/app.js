@@ -12,13 +12,16 @@ const state = {
     editingListingId: null,
     createStep: 1,
     bounds: { daily: [0, 10000], monthly: [0, 50000], area: [0, 500] },
+    rangesReady: false,
 };
 
 const $ = (id) => document.getElementById(id);
 const token = () => localStorage.getItem(TOKEN_KEY);
 const user = () => JSON.parse(localStorage.getItem(USER_KEY) || 'null');
 const fmt = (v) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtCompact = (v) => Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 const escapeHtml = (s) => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 function toast(msg, type = '') {
     const t = $('toast');
@@ -121,22 +124,42 @@ function requireLogin(action) {
 }
 
 // ---- Range filters ----
-function initRange(idMin, idMax, idLbl, bounds, suffix = '') {
+function initRange(idMin, idMax, idLbl, bounds, suffix = '', preserve = false) {
     const minEl = $(idMin), maxEl = $(idMax), lbl = $(idLbl);
+    const minNum = $(idMin + '-num'), maxNum = $(idMax + '-num');
+    const currentMin = preserve ? parseFloat(minEl.value) : bounds[0];
+    const currentMax = preserve ? parseFloat(maxEl.value) : bounds[1];
     [minEl, maxEl].forEach(el => {
         el.min = bounds[0]; el.max = bounds[1]; el.step = Math.max(1, Math.round((bounds[1] - bounds[0]) / 100));
     });
-    minEl.value = bounds[0]; maxEl.value = bounds[1];
+    [minNum, maxNum].filter(Boolean).forEach(el => {
+        el.min = bounds[0]; el.max = bounds[1]; el.step = Math.max(1, Math.round((bounds[1] - bounds[0]) / 100));
+    });
+    minEl.value = clamp(Number.isFinite(currentMin) ? currentMin : bounds[0], bounds[0], bounds[1]);
+    maxEl.value = clamp(Number.isFinite(currentMax) ? currentMax : bounds[1], bounds[0], bounds[1]);
     const update = () => {
         let lo = parseFloat(minEl.value), hi = parseFloat(maxEl.value);
         if (lo > hi) { [lo, hi] = [hi, lo]; minEl.value = lo; maxEl.value = hi; }
-        lbl.textContent = suffix + fmt(lo) + ' — ' + suffix + fmt(hi);
+        if (minNum) minNum.value = lo;
+        if (maxNum) maxNum.value = hi;
+        const format = suffix ? fmt : fmtCompact;
+        lbl.textContent = suffix + format(lo) + ' — ' + suffix + format(hi);
+        renderCurrentProperties();
+    };
+    const updateFromNumber = () => {
+        const lo = minNum ? parseFloat(minNum.value) : parseFloat(minEl.value);
+        const hi = maxNum ? parseFloat(maxNum.value) : parseFloat(maxEl.value);
+        minEl.value = clamp(Number.isFinite(lo) ? lo : bounds[0], bounds[0], bounds[1]);
+        maxEl.value = clamp(Number.isFinite(hi) ? hi : bounds[1], bounds[0], bounds[1]);
+        update();
     };
     minEl.oninput = maxEl.oninput = update;
+    if (minNum) minNum.oninput = updateFromNumber;
+    if (maxNum) maxNum.oninput = updateFromNumber;
     update();
 }
 
-function updateBoundsFromData(items) {
+function updateBoundsFromData(items, preserve = false) {
     if (!items.length) return;
     const daily = items.map(p => parseFloat(p.daily_price));
     const monthly = items.map(p => parseFloat(p.monthly_price));
@@ -144,9 +167,10 @@ function updateBoundsFromData(items) {
     state.bounds.daily = [0, Math.ceil(Math.max(...daily) / 50) * 50 || 1000];
     state.bounds.monthly = [0, Math.ceil(Math.max(...monthly) / 100) * 100 || 10000];
     state.bounds.area = [0, Math.ceil(Math.max(...area) / 10) * 10 || 300];
-    initRange('f-daily-min', 'f-daily-max', 'f-daily-lbl', state.bounds.daily, 'R$ ');
-    initRange('f-monthly-min', 'f-monthly-max', 'f-monthly-lbl', state.bounds.monthly, 'R$ ');
-    initRange('f-area-min', 'f-area-max', 'f-area-lbl', state.bounds.area, '');
+    initRange('f-daily-min', 'f-daily-max', 'f-daily-lbl', state.bounds.daily, 'R$ ', preserve);
+    initRange('f-monthly-min', 'f-monthly-max', 'f-monthly-lbl', state.bounds.monthly, 'R$ ', preserve);
+    initRange('f-area-min', 'f-area-max', 'f-area-lbl', state.bounds.area, '', preserve);
+    state.rangesReady = true;
 }
 
 function getApiParams() {
@@ -205,18 +229,27 @@ function renderFilterChips() {
     if ($('f-city').value.trim()) chips.push(['Cidade', $('f-city').value.trim()]);
     if (state.activeType) chips.push(['Tipo', state.activeType]);
     if ($('f-q').value.trim()) chips.push(['Busca', $('f-q').value.trim()]);
-    chips.push(['Diaria', $('f-daily-lbl').textContent]);
-    chips.push(['Mensal', $('f-monthly-lbl').textContent]);
+    if ($('f-available').value !== '') chips.push(['Status', $('f-available').value === '1' ? 'Disponiveis' : 'Indisponiveis']);
+    if (parseFloat($('f-daily-min').value) > state.bounds.daily[0] || parseFloat($('f-daily-max').value) < state.bounds.daily[1]) chips.push(['Diaria', $('f-daily-lbl').textContent]);
+    if (parseFloat($('f-monthly-min').value) > state.bounds.monthly[0] || parseFloat($('f-monthly-max').value) < state.bounds.monthly[1]) chips.push(['Mensal', $('f-monthly-lbl').textContent]);
+    if (parseFloat($('f-area-min').value) > state.bounds.area[0] || parseFloat($('f-area-max').value) < state.bounds.area[1]) chips.push(['Area', $('f-area-lbl').textContent + ' m2']);
     const box = $('filter-chips');
-    box.classList.remove('hidden');
+    box.classList.toggle('hidden', chips.length === 0);
     box.innerHTML = chips.map(([k, v]) => `<span class="chip">${k}: ${escapeHtml(v)}</span>`).join('')
-        + `<span class="chip"><button type="button" onclick="clearFilters()" title="Limpar">&times;</button> Limpar tudo</span>`;
+        + (chips.length ? `<span class="chip chip-clear"><button type="button" onclick="clearFilters()" title="Limpar">&times;</button> Limpar tudo</span>` : '');
+}
+
+function propertyVisualClass(p) {
+    return `property-visual ${p.type === 'casa' ? 'house' : 'apartment'}`;
 }
 
 function propertyCardHtml(p) {
     return `
     <article class="property-card">
         <div class="property-thumb" role="button" tabindex="0" onclick="navigate('detail',${p.id})">
+            <div class="${propertyVisualClass(p)}" aria-hidden="true">
+                <span></span><span></span><span></span>
+            </div>
             <span class="badge">${escapeHtml(p.type)}</span>
             <span class="avail ${p.available == 1 ? 'yes' : 'no'}">${p.available == 1 ? 'Disponivel' : 'Indisponivel'}</span>
         </div>
@@ -250,13 +283,19 @@ function renderProperties(list) {
     box.innerHTML = list.map(propertyCardHtml).join('');
 }
 
+function renderCurrentProperties() {
+    if (!state.allProperties.length || !$('properties')) return;
+    renderFilterChips();
+    renderProperties(applyClientFilters(state.allProperties));
+}
+
 async function loadProperties() {
     $('properties').innerHTML = '<p class="empty-state" style="grid-column:1/-1;">Carregando...</p>';
     try {
         const params = getApiParams();
         const { data } = await api('/api/imoveis' + (params.toString() ? '?' + params : ''));
         state.allProperties = data || [];
-        updateBoundsFromData(state.allProperties);
+        updateBoundsFromData(state.allProperties, state.rangesReady);
         renderFilterChips();
         renderProperties(applyClientFilters(state.allProperties));
     } catch (e) {
@@ -270,6 +309,7 @@ function clearFilters() {
     $('f-bedrooms-min').value = '0'; $('f-bedrooms-max').value = '10';
     $('f-bathrooms-min').value = '0';
     state.activeType = '';
+    state.rangesReady = false;
     document.querySelectorAll('.search-tab').forEach(t => t.classList.toggle('active', t.dataset.type === ''));
     if (state.allProperties.length) updateBoundsFromData(state.allProperties);
     loadProperties();
@@ -285,6 +325,13 @@ async function loadPropertyDetail(id) {
         box.innerHTML = `
         <button type="button" class="btn btn-ghost detail-back" onclick="navigate('explore')">&larr; Voltar</button>
         <div class="detail-hero">
+            <div class="${propertyVisualClass(p)} detail-visual" aria-hidden="true">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="detail-hero-copy">
+                <strong>${escapeHtml(p.city)}</strong>
+                <span>${escapeHtml(p.address)}</span>
+            </div>
             <span class="badge">${escapeHtml(p.type)}</span>
             <span class="avail ${p.available == 1 ? 'yes' : 'no'}" style="position:absolute;top:1rem;right:1rem">${p.available == 1 ? 'Disponivel' : 'Indisponivel'}</span>
         </div>
@@ -302,6 +349,7 @@ async function loadPropertyDetail(id) {
                 <p class="detail-desc">${escapeHtml(p.description || 'Sem descricao cadastrada.')}</p>
             </div>
             <aside class="detail-sidebar">
+                <div class="booking-eyebrow">Resumo da locacao</div>
                 <div class="price-main" style="font-size:1.5rem;margin-bottom:.25rem">R$ ${fmt(p.daily_price)}<span class="price-sub"> /dia</span></div>
                 <div class="price-sub" style="margin-bottom:1rem">R$ ${fmt(p.monthly_price)} / mes</div>
                 <button type="button" class="btn btn-accent" style="width:100%;margin-bottom:.5rem" onclick='openReserve(${JSON.stringify(p).replace(/'/g, "&#39;")})'>Reservar agora</button>
@@ -473,8 +521,12 @@ function openReserve(property) {
     state.selectedProperty = property;
     $('reserve-property').textContent = `${property.title} — ${property.city}`;
     $('reserve-summary').innerHTML = `
-        <div style="background:var(--surface-2);padding:.75rem;border-radius:8px;font-size:.88rem;margin-bottom:1rem">
-            <strong>R$ ${fmt(property.daily_price)}</strong>/dia &middot; R$ ${fmt(property.monthly_price)}/mes
+        <div class="reserve-preview">
+            <div class="${propertyVisualClass(property)}" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div>
+                <strong>R$ ${fmt(property.daily_price)}</strong><span>/dia</span>
+                <small>R$ ${fmt(property.monthly_price)} / mes &middot; ${property.bedrooms} quartos</small>
+            </div>
         </div>`;
     toggleIncome();
     $('reserve-modal').showModal();
@@ -529,6 +581,12 @@ async function loadReservations() {
 
 // ---- Init ----
 function bindEvents() {
+    let apiFilterTimer = null;
+    const scheduleApiFilter = () => {
+        clearTimeout(apiFilterTimer);
+        apiFilterTimer = setTimeout(loadProperties, 260);
+    };
+
     document.querySelectorAll('.search-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
@@ -549,6 +607,12 @@ function bindEvents() {
     $('btn-search').onclick = loadProperties;
     $('btn-refresh').onclick = loadProperties;
     $('btn-clear-filters').onclick = clearFilters;
+    $('f-city').addEventListener('input', scheduleApiFilter);
+    $('f-available').addEventListener('change', loadProperties);
+    ['f-q','f-sort','f-bedrooms-min','f-bedrooms-max','f-bathrooms-min'].forEach(id => {
+        $(id).addEventListener('input', renderCurrentProperties);
+        $(id).addEventListener('change', renderCurrentProperties);
+    });
     $('btn-open-login').onclick = () => $('login-modal').showModal();
     $('login-cancel').onclick = () => $('login-modal').close();
     $('login-submit').onclick = doLogin;
