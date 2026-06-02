@@ -91,6 +91,7 @@ function refreshAuthUI() {
     $('user-label').classList.toggle('hidden', !logged);
     $('btn-logout').classList.toggle('hidden', !logged);
     $('btn-open-login').classList.toggle('hidden', logged);
+    $('btn-open-signup').classList.toggle('hidden', logged);
     $('btn-create-listing').classList.toggle('hidden', !logged);
     if (u) $('user-label').textContent = u.name;
 }
@@ -107,6 +108,32 @@ async function doLogin() {
         refreshAuthUI();
         toast('Login efetuado.', 'ok');
         if (parseRoute().view === 'listings') loadMyListings();
+    } catch (e) { toast(e.message, 'err'); }
+}
+
+async function doSignup() {
+    const name = $('signup-name').value.trim();
+    const email = $('signup-email').value.trim();
+    const password = $('signup-pass').value;
+    const role = $('signup-role').value;
+
+    try {
+        await api('/api/auth/register', {
+            method: 'POST',
+            body: { name, email, password, role },
+        });
+
+        const data = await api('/api/auth/login', {
+            method: 'POST',
+            body: { email, password },
+        });
+
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+        $('signup-modal').close();
+        refreshAuthUI();
+        toast('Conta criada com sucesso.', 'ok');
+        if (role === 'locador') navigate('listings');
     } catch (e) { toast(e.message, 'err'); }
 }
 
@@ -616,6 +643,17 @@ function bindEvents() {
     $('btn-open-login').onclick = () => $('login-modal').showModal();
     $('login-cancel').onclick = () => $('login-modal').close();
     $('login-submit').onclick = doLogin;
+    $('btn-open-signup').onclick = () => $('signup-modal').showModal();
+    $('signup-cancel').onclick = () => $('signup-modal').close();
+    $('signup-submit').onclick = doSignup;
+    $('login-open-signup').onclick = () => {
+        $('login-modal').close();
+        $('signup-modal').showModal();
+    };
+    $('signup-open-login').onclick = () => {
+        $('signup-modal').close();
+        $('login-modal').showModal();
+    };
     $('btn-logout').onclick = doLogout;
     $('btn-create-listing').onclick = openCreateListing;
     $('reserve-cancel').onclick = () => $('reserve-modal').close();

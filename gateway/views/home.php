@@ -8,9 +8,8 @@
 </head>
 <body>
     <header class="site-header">
-        <a class="logo" href="#/">
-            <span class="logo-mark" aria-hidden="true">A</span>
-            <span>Aluguel Hub<small>Framework Whitelabel &middot; UFAL</small></span>
+        <a class="logo brand-wordmark" href="#/">
+            <span>Aluguel Hub</span>
         </a>
         <nav class="app-nav" aria-label="Principal">
             <button type="button" data-nav="explore" class="active">Explorar</button>
@@ -20,6 +19,7 @@
         <div class="nav-actions">
             <button type="button" id="btn-create-listing" class="btn btn-accent btn-sm hidden">+ Anunciar</button>
             <span id="user-label" class="user-chip hidden"></span>
+            <button type="button" id="btn-open-signup" class="btn btn-ghost btn-sm">Cadastrar</button>
             <button type="button" id="btn-open-login" class="btn btn-primary btn-sm">Entrar</button>
             <button type="button" id="btn-logout" class="btn btn-ghost btn-sm hidden">Sair</button>
         </div>
@@ -202,6 +202,46 @@
             <div class="modal-foot">
                 <button type="button" class="btn btn-ghost" id="login-cancel">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="login-submit">Entrar</button>
+            </div>
+            <button type="button" class="auth-switch" id="login-open-signup">Ainda n&atilde;o tenho conta. Cadastrar.</button>
+        </div>
+    </dialog>
+
+    <!-- Modal: Cadastro -->
+    <dialog id="signup-modal" class="login-dialog">
+        <div class="login-shell">
+            <div class="login-form-pane">
+                <div class="modal-head">
+                    <h2>Criar conta</h2>
+                    <button type="button" class="modal-close" aria-label="Fechar">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-subtitle">Cadastre-se para reservar im&oacute;veis ou publicar seus pr&oacute;prios an&uacute;ncios.</p>
+                    <div class="form-field"><label for="signup-name">Nome</label><input id="signup-name" type="text" placeholder="Seu nome" autocomplete="name"></div>
+                    <div class="form-field"><label for="signup-email">E-mail</label><input id="signup-email" type="email" placeholder="voce@email.com" autocomplete="email"></div>
+                    <div class="form-field"><label for="signup-pass">Senha</label><input id="signup-pass" type="password" placeholder="Minimo de 6 caracteres" autocomplete="new-password"></div>
+                    <div class="form-field">
+                        <label for="signup-role">Perfil</label>
+                        <select id="signup-role">
+                            <option value="locatario">Quero reservar im&oacute;veis</option>
+                            <option value="locador">Quero anunciar im&oacute;veis</option>
+                        </select>
+                    </div>
+                    <div class="modal-foot">
+                        <button type="button" class="btn btn-ghost" id="signup-cancel">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="signup-submit">Criar conta</button>
+                    </div>
+                    <button type="button" class="auth-switch" id="signup-open-login">J&aacute; tenho conta. Entrar.</button>
+                </div>
+            </div>
+            <div class="login-art-pane" aria-hidden="true">
+                <div class="login-art-card">
+                    <div class="showcase-visual">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <strong>Comece com seu perfil certo</strong>
+                    <small>Locat&aacute;rios reservam com poucos cliques. Locadores anunciam e acompanham tudo pelo painel.</small>
+                </div>
             </div>
         </div>
     </dialog>
