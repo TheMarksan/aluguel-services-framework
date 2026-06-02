@@ -216,10 +216,10 @@ ecossistema (Gateway, Reservas/`RentEngine` e Front-end) está funcional.
 - [x] Mapear erros de banco (`PDOException`) para respostas HTTP amigáveis.
 
 ### Catálogo (`ms-catalogo`)
-- [ ] **Proteger os endpoints de escrita** (`POST`/`PUT`/`DELETE /api/imoveis`): atualmente estão abertos, sem checagem de token/role.
-- [ ] Vincular `owner_id` ao usuário autenticado (hoje é aceito direto do payload).
-- [ ] Paginação e ordenação na listagem (hoje retorna todos os registros).
-- [ ] Validações de negócio adicionais (preços não-negativos, tipos, etc.).
+- [x] **Proteger os endpoints de escrita** (`POST`/`PUT`/`DELETE /api/imoveis`): atualmente estão abertos, sem checagem de token/role.
+- [x] Vincular `owner_id` ao usuário autenticado (hoje é aceito direto do payload).
+- [x] Paginação e ordenação na listagem (hoje retorna todos os registros).
+- [x] Validações de negócio adicionais (preços não-negativos, tipos, etc.).
 
 ### Integração de Segurança (limite entre as duas partes)
 - [ ] Acionar `POST /api/auth/validate` como middleware nas rotas protegidas: o Gateway hoje
