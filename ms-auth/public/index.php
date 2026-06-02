@@ -54,6 +54,8 @@ try {
     match (true) {
         $method === 'POST' && $path === '/register' => $controller->register($readJsonBody()),
         $method === 'POST' && $path === '/login'    => $controller->login($readJsonBody()),
+        $method === 'POST' && $path === '/logout'   => $controller->logout($auth),
+        $method === 'POST' && $path === '/refresh'  => $controller->refresh($auth),
         $method === 'GET'  && $path === '/me'       => $controller->me($auth),
         $method === 'POST' && $path === '/validate' => $controller->validate($auth),
         $method === 'GET'  && $path === '/health'   => print(json_encode(['service' => 'ms-auth', 'status' => 'ok'])),

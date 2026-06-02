@@ -53,4 +53,17 @@ final class UserRepository
 
         return (int) $this->pdo->lastInsertId();
     }
+
+    public function revokeToken(string $token): void
+    {
+        $stmt = $this->pdo->prepare("INSERT IGNORE INTO revoked_tokens (token) VALUES (:token)");
+        $stmt->execute(['token' => $token]);
+    }
+
+    public function isTokenRevoked(string $token): bool
+    {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM revoked_tokens WHERE token = :token");
+        $stmt->execute(['token' => $token]);
+        return (bool) $stmt->fetchColumn();
+    }
 }

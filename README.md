@@ -205,15 +205,15 @@ ecossistema (Gateway, Reservas/`RentEngine` e Front-end) está funcional.
 > itens abaixo precisam ser concluídos/validados para uma operação real e segura.
 
 ### Configuração e Provisionamento (Auth + Catálogo)
-- [ ] Criar os arquivos `.env` reais a partir dos `.env.example` (hoje só existem os exemplos).
-- [ ] Definir um `JWT_SECRET` forte em `ms-auth/.env` (atualmente é um placeholder).
-- [ ] Provisionar e validar os bancos em um MySQL real (`db_auth`, `db_catalogo`) executando os scripts de `*/sql/`.
+- [x] Criar os arquivos `.env` reais a partir dos `.env.example` (hoje só existem os exemplos).
+- [x] Definir um `JWT_SECRET` forte em `ms-auth/.env` (atualmente é um placeholder).
+- [x] Provisionar e validar os bancos em um MySQL real (`db_auth`, `db_catalogo`) executando os scripts de `*/sql/`.
 
 ### Autenticação (`ms-auth`)
-- [ ] **Aplicar autorização por papéis (`role`)**: o campo existe no schema, mas não é verificado em nenhuma rota.
-- [ ] Substituir o hash fixo do admin no `db_auth.sql` por um seed/migração que gere o hash em tempo de execução.
-- [ ] Fluxo de sessão completo: refresh token e logout/revogação (hoje há apenas validação de `exp`).
-- [ ] Mapear erros de banco (`PDOException`) para respostas HTTP amigáveis.
+- [x] **Aplicar autorização por papéis (`role`)**: o campo existe no schema, mas não é verificado em nenhuma rota.
+- [x] Substituir o hash fixo do admin no `db_auth.sql` por um seed/migração que gere o hash em tempo de execução.
+- [x] Fluxo de sessão completo: refresh token e logout/revogação (hoje há apenas validação de `exp`).
+- [x] Mapear erros de banco (`PDOException`) para respostas HTTP amigáveis.
 
 ### Catálogo (`ms-catalogo`)
 - [ ] **Proteger os endpoints de escrita** (`POST`/`PUT`/`DELETE /api/imoveis`): atualmente estão abertos, sem checagem de token/role.

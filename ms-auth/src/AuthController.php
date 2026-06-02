@@ -24,43 +24,41 @@ final class AuthController
      */
     public function register(array $input): void
     {
-        $name     = trim((string) ($input['name'] ?? ''));
-        $email    = trim((string) ($input['email'] ?? ''));
-        $password = (string) ($input['password'] ?? '');
-        $role     = (string) ($input['role'] ?? 'locatario');
+        $name = $input['name'] ?? '';
+        $email = $input['email'] ?? '';
+        $password = $input['password'] ?? '';
+        $role = $input['role'] ?? 'locatario';
 
-        if ($name === '' || $email === '' || strlen($password) < 6) {
-            $this->json(422, ['error' => 'Dados invalidos. Nome, email e senha (min. 6) sao obrigatorios.']);
+        if (!$name || !$email || !$password) {
+            $this->json(400, ['error' => 'Dados incompletos. Nome, email e password sao obrigatorios.']);
             return;
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->json(422, ['error' => 'Email invalido.']);
+        if ($role === 'admin') {
+            $this->json(403, ['error' => 'Nao e permitido registar contas com o papel de administrador.']);
             return;
         }
 
-        if (!in_array($role, ['admin', 'locador', 'locatario'], true)) {
-            $role = 'locatario';
-        }
-
-        if ($this->users->emailExists($email)) {
-            $this->json(409, ['error' => 'Email ja cadastrado.']);
+        if (!in_array($role, ['locador', 'locatario'])) {
+            $this->json(400, ['error' => 'Papel (role) invalido. Escolha locador ou locatario.']);
             return;
         }
 
-        $id = $this->users->create(
-            $name,
-            $email,
-            password_hash($password, PASSWORD_BCRYPT),
-            $role
-        );
+        $hash = password_hash($password, PASSWORD_BCRYPT);
 
-        $this->json(201, [
-            'id'    => $id,
-            'name'  => $name,
-            'email' => $email,
-            'role'  => $role,
-        ]);
+        try {
+            $id = $this->users->create($name, $email, $hash, $role);
+            $this->json(201, [
+                'message' => 'Utilizador registado com sucesso.',
+                'data' => ['id' => $id, 'name' => $name, 'email' => $email, 'role' => $role]
+            ]);
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) {
+                $this->json(409, ['error' => 'Este email ja se encontra registado no sistema.']);
+            } else {
+                $this->json(500, ['error' => 'Erro interno na base de dados.']);
+            }
+        }
     }
 
     /**
@@ -103,6 +101,41 @@ final class AuthController
         ]);
     }
 
+    public function logout(string $authHeader): void
+    {
+        $token = str_replace('Bearer ', '', $authHeader);
+        if (!$token) {
+            $this->json(400, ['error' => 'Token ausente.']);
+            return;
+        }
+
+        $this->users->revokeToken($token);
+        $this->json(200, ['message' => 'Logout efetuado com sucesso. Token revogado.']);
+    }
+
+    public function refresh(string $authHeader): void
+    {
+        $claims = $this->resolveClaims($authHeader);
+        if (!$claims) {
+            return;
+        }
+
+        $oldToken = str_replace('Bearer ', '', $authHeader);
+        $this->users->revokeToken($oldToken);
+
+        $secret = getenv('JWT_SECRET');
+        $issuer = getenv('JWT_ISSUER');
+        $ttl = (int) getenv('JWT_TTL') ?: 3600;
+
+        $newClaims = [
+            'sub' => $claims['sub'],
+            'role' => $claims['role']
+        ];
+
+        $newToken = Jwt::encode($newClaims, $secret, $issuer, $ttl);
+        $this->json(200, ['token' => $newToken]);
+    }
+
     public function me(string $authorizationHeader): void
     {
         $claims = $this->resolveClaims($authorizationHeader);
@@ -124,6 +157,13 @@ final class AuthController
      */
     public function validate(string $authorizationHeader): void
     {
+        $token = str_replace('Bearer ', '', $authorizationHeader);
+        
+        if ($token && $this->users->isTokenRevoked($token)) {
+            $this->json(401, ['error' => 'Token revogado. Faça login novamente.']);
+            return;
+        }
+
         $claims = $this->resolveClaims($authorizationHeader);
         if ($claims === null) {
             $this->json(401, ['valid' => false]);

@@ -25,16 +25,3 @@ CREATE TABLE IF NOT EXISTS users (
     UNIQUE KEY uq_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------------------------
--- Seed: usuario administrador padrao
--- Senha em texto plano: "admin123"
--- Hash gerado via password_hash('admin123', PASSWORD_BCRYPT).
--- --------------------------------------------------------------------------
-INSERT INTO users (name, email, password_hash, role)
-VALUES (
-    'Administrador',
-    'admin@aluguel.dev',
-    '$2y$12$urhuh3I3MmYcPnt8j5pnueJNcdXjp3KZQibiiRfYD4m1dXEpFFfva',
-    'admin'
-)
-ON DUPLICATE KEY UPDATE email = email;
