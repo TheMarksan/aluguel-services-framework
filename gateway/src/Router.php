@@ -38,9 +38,8 @@ final class Router
     /**
      * Encaminha chamadas de API para o microsservico correto.
      */
-    private function handleApi(string $method, string $path, string $uri): void
+private function handleApi(string $method, string $path, string $uri): void
     {
-        // /api/{servico}/{resto...}
         $segments = explode('/', trim(substr($path, strlen('/api/')), '/'));
         $service  = $segments[0] ?? '';
         $rest     = implode('/', array_slice($segments, 1));
@@ -54,7 +53,29 @@ final class Router
             return;
         }
 
-        // Recompoe a URL interna preservando a query string original.
+        $headers = $this->forwardableHeaders();
+
+        $isProtected = ($service === 'imoveis' && in_array($method, ['POST', 'PUT', 'DELETE']))
+                    || ($service === 'reservas' && in_array($method, ['POST', 'PUT', 'DELETE']));
+
+        if ($isProtected) {
+            $authUrl = $serviceMap['auth'] . '/validate';
+            
+            $authCheck = $this->http->forward('POST', $authUrl, '', $headers);
+
+            if ($authCheck['status'] !== 200) {
+                $this->json(401, ['error' => 'Não autorizado pelo Gateway. Token inválido ou ausente.']);
+                return;
+            }
+
+            $claims = json_decode($authCheck['body'], true)['claims'] ?? [];
+            
+            if (isset($claims['sub'])) {
+                $headers['X-User-Id'] = (string) $claims['sub'];
+                $headers['X-User-Role'] = (string) ($claims['role'] ?? 'locatario');
+            }
+        }
+
         $query      = parse_url($uri, PHP_URL_QUERY);
         $targetUrl  = rtrim($serviceMap[$service], '/') . '/' . $rest;
         if ($query) {
@@ -62,10 +83,12 @@ final class Router
         }
 
         $body     = file_get_contents('php://input') ?: '';
-        $response = $this->http->forward($method, $targetUrl, $body, $this->forwardableHeaders());
+        $response = $this->http->forward($method, $targetUrl, $body, $headers);
 
         http_response_code($response['status']);
-        header('Content-Type: ' . $response['content_type']);
+        if (isset($response['content_type'])) {
+            header('Content-Type: ' . $response['content_type']);
+        }
         echo $response['body'];
     }
 

@@ -222,7 +222,7 @@ ecossistema (Gateway, Reservas/`RentEngine` e Front-end) está funcional.
 - [x] Validações de negócio adicionais (preços não-negativos, tipos, etc.).
 
 ### Integração de Segurança (limite entre as duas partes)
-- [ ] Acionar `POST /api/auth/validate` como middleware nas rotas protegidas: o Gateway hoje
+- [x] Acionar `POST /api/auth/validate` como middleware nas rotas protegidas: o Gateway hoje
       apenas **repassa** o header `Authorization`, sem validar o token antes de encaminhar.
 
 ---
