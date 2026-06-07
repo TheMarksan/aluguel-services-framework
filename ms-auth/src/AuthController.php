@@ -160,7 +160,7 @@ final class AuthController
         $token = str_replace('Bearer ', '', $authorizationHeader);
         
         if ($token && $this->users->isTokenRevoked($token)) {
-            $this->json(401, ['error' => 'Token revogado. Faça login novamente.']);
+            $this->json(401, ['error' => 'Token revogado. Faca login novamente.']);
             return;
         }
 

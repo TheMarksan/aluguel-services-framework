@@ -15,10 +15,10 @@ use MsReservas\ReservationRepository;
  *
  * Terminologia de frameworks:
  *   - FROZEN SPOTS (pontos congelados): passos fixos, implementados aqui e
- *     reutilizados por todas as modalidades — validacao base, verificacao de
+ *     reutilizados por todas as modalidades - validacao base, verificacao de
  *     disponibilidade e persistencia.
  *   - HOT SPOTS (pontos quentes / pontos de variacao): passos que mudam por
- *     modalidade — sao metodos abstratos (obrigatorios) ou hooks (opcionais).
+ *     modalidade - sao metodos abstratos (obrigatorios) ou hooks (opcionais).
  *
  * Hotspots desta engine:
  *   - modalityName()       [abstract] -> identifica a modalidade.

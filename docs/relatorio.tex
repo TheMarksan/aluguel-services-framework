@@ -20,11 +20,24 @@
 \usepackage{enumitem}
 \usepackage{booktabs}
 \usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
 \usepackage{fancyhdr}
 \usepackage{titlesec}
 \usepackage{caption}
 \usepackage{tikz}
 \usetikzlibrary{positioning,shapes.geometric}
+
+% ------------------------ Ajustes tipograficos ----------------------------
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{1.2em}
+\setlength{\emergencystretch}{3em}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\renewcommand{\arraystretch}{1.15}
+\captionsetup{font=small,labelfont=bf}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 
 % --------------------------- Hyperlinks -----------------------------------
 \hypersetup{
@@ -46,17 +59,23 @@
     keywordstyle=\color{codeblue}\bfseries,
     commentstyle=\color{codegreen}\itshape,
     breaklines=true,
+    breakatwhitespace=false,
+    breakautoindent=false,
+    columns=fullflexible,
     frame=single,
+    framerule=0.3pt,
+    framesep=4pt,
     showstringspaces=false,
     tabsize=2,
-    captionpos=b
+    captionpos=b,
+    postbreak=\mbox{\textcolor{codeblue}{$\hookrightarrow$}\space}
 }
 
 % Inclui codigo externo quando o arquivo esta disponivel. Quando o relatorio
 % e compilado fora do monorepo (ex.: main.tex no Overleaf), evita erro fatal.
 \newcommand{\safeinputlisting}[3]{%
     \IfFileExists{#3}{%
-        \lstinputlisting[language=#1,caption={#2}]{#3}%
+        \lstinputlisting[language=#1,caption={#2},basicstyle=\ttfamily\scriptsize]{#3}%
     }{%
         \par\noindent\textbf{#2}\par
         \noindent\fbox{%
@@ -165,11 +184,13 @@ O desenvolvimento seguiu uma abordagem incremental, organizada em um
 \textit{Product Backlog} priorizado. Cada item foi tratado como uma \textit{Sprint}
 curta, com entrega versionada ao final de cada etapa.
 
-\begin{longtable}{c p{7.5cm} c}
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{C{2.1cm} Y C{2.1cm}}
     \toprule
     \textbf{Prioridade} & \textbf{Item do Backlog (User Story)} & \textbf{Status} \\
     \midrule
-    \endhead
     1 (Alta)  & Inicializacao do repositorio: \texttt{.gitignore}, \texttt{README} e relatorio tecnico. & Concluido \\
     2 (Alta)  & API Gateway: roteamento central \textit{stateless} e comunicacao interna via cURL. & Concluido \\
     3 (Alta)  & Microsservico de Autenticacao (\texttt{ms-auth}) com JWT e banco \texttt{db\_auth}. & Concluido \\
@@ -178,15 +199,18 @@ curta, com entrega versionada ao final de cada etapa.
     6 (Media) & Classes concretas \texttt{LongTermRent} e \texttt{VacationRent}, provando o reuso. & Concluido \\
     7 (Baixa) & Front-end integrado no Gateway (Blade/HTML) consumindo o ecossistema. & Concluido \\
     \bottomrule
+    \end{tabularx}
     \caption{Product Backlog priorizado do framework.}
-\end{longtable}
+\end{table}
 
 \subsection{Sprint Backlog por Sprint}
-\begin{longtable}{c p{4.2cm} p{7.2cm} c}
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{C{1.2cm} p{3cm} Y p{2.1cm}}
     \toprule
     \textbf{Sprint} & \textbf{Meta} & \textbf{Itens do Sprint Backlog} & \textbf{Entrega} \\
     \midrule
-    \endhead
     1 & Inicializar o monorepo & Criar estrutura de pastas; adicionar \texttt{README}; preparar relatorio em LaTeX; definir escopo e arquitetura inicial. & Base do projeto \\
     2 & Implementar Gateway & Criar \texttt{gateway}; configurar roteamento \texttt{/api/*}; implementar cliente HTTP via cURL; servir a view principal. & Gateway funcional \\
     3 & Implementar autenticacao & Criar \texttt{ms-auth}; modelar usuarios; implementar cadastro, login, JWT, validacao de token e seed administrativo. & Auth JWT \\
@@ -195,9 +219,10 @@ curta, com entrega versionada ao final de cada etapa.
     6 & Criar aplicacoes concretas & Implementar \texttt{VacationRent}; implementar \texttt{LongTermRent}; adicionar \texttt{CreditCheckComponent}; registrar modalidades na fabrica. & Duas aplicacoes por reuso \\
     7 & Integrar interface e seguranca & Criar front-end integrado no Gateway; consumir Auth, Catalogo e Reservas; proteger rotas de escrita via validacao JWT. & Sistema integrado \\
     \bottomrule
+    \end{tabularx}
     \caption{Sprint Backlog resumido por sprint.}
     \label{tab:sprint_backlog}
-\end{longtable}
+\end{table}
 
 \subsection{Justificativa das Prioridades}
 Os itens de infraestrutura e seguranca (Gateway e Autenticacao) recebem prioridade
@@ -242,6 +267,7 @@ exclusivamente com o Gateway, que orquestra as chamadas internas.
 
 \begin{table}[h]
     \centering
+    \small
     \begin{tabular}{l c l l}
         \toprule
         \textbf{Servico} & \textbf{Porta} & \textbf{Banco} & \textbf{Responsabilidade} \\
@@ -389,20 +415,23 @@ reservas.
 A modelagem dos componentes considera suas interfaces de uso, isto e, os contratos
 publicos pelos quais cada componente e consumido dentro do framework.
 
-\begin{longtable}{l p{5.2cm} p{6cm}}
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{p{4.2cm} p{4.3cm} Y}
     \toprule
     \textbf{Componente} & \textbf{Interface/Contrato} & \textbf{Uso no Framework} \\
     \midrule
-    \endhead
     \texttt{AuthController} & \texttt{register}, \texttt{login}, \texttt{me}, \texttt{validate}, \texttt{logout}, \texttt{refresh} & Autenticacao, emissao e validacao de JWT para rotas protegidas. \\
     \texttt{CatalogController} & \texttt{index}, \texttt{show}, \texttt{store}, \texttt{update}, \texttt{destroy} & Cadastro, consulta e manutencao dos imoveis disponiveis para reserva. \\
     \texttt{RentEngine} & \texttt{processReservation} e hotspots protegidos & Classe do framework que fixa o fluxo de reserva e permite adaptacao por subclasses. \\
     \texttt{CreditCheckComponent} & \texttt{evaluate} & Componente reutilizavel de analise de credito usado por composicao na modalidade de longa duracao. \\
     \texttt{EngineFactory} & \texttt{create}, \texttt{supportedModalities} & Ponto de extensao que registra e instancia aplicacoes concretas do framework. \\
     \bottomrule
+    \end{tabularx}
     \caption{Interfaces dos componentes usados no framework.}
     \label{tab:interfaces_componentes}
-\end{longtable}
+\end{table}
 
 \subsection{Listagem dos Microsservicos em Execucao}
 A tela principal do sistema, servida pelo Gateway em \texttt{http://localhost:8003},
@@ -548,19 +577,22 @@ Assets em \texttt{gateway/public/assets/css/app.css} e \texttt{gateway/views/hom
 \section{Tecnologias Utilizadas}
 % ==========================================================================
 \subsection{Tecnologias dos Microsservicos}
-\begin{longtable}{l l l p{5.2cm}}
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{p{2.8cm} p{2.1cm} p{3.1cm} Y}
     \toprule
     \textbf{Servico} & \textbf{Linguagem} & \textbf{Banco} & \textbf{Tecnologias} \\
     \midrule
-    \endhead
     \texttt{gateway} & PHP 8.2 & -- & Servidor embutido do PHP, cURL, HTML, CSS e JavaScript. \\
     \texttt{ms-auth} & PHP 8.2 & MySQL \texttt{db\_auth} & PDO, JWT HS256, \texttt{bcrypt}, Composer e variaveis \texttt{.env}. \\
     \texttt{ms-catalogo} & PHP 8.2 & MySQL \texttt{db\_catalogo} & PDO, API REST, filtros, paginacao, autorizacao por cabecalhos validados. \\
     \texttt{ms-reservas} & PHP 8.2 & MySQL \texttt{db\_reservas} & Template Method, classes abstratas, heranca, composicao e Factory. \\
     \bottomrule
+    \end{tabularx}
     \caption{Tecnologias por microsservico.}
     \label{tab:tecnologias_microservicos}
-\end{longtable}
+\end{table}
 
 \subsection{Tecnologias do Framework e das Aplicacoes}
 O framework foi implementado com PHP orientado a objetos, usando namespaces,
@@ -817,8 +849,8 @@ respeitando o \textit{Open/Closed Principle}.
 % ==========================================================================
 \subsection{Passo a Passo das Telas}
 O funcionamento do sistema ocorre a partir da interface principal em
-\texttt{http://localhost:8003}. A tela inicial e servida pelo Gateway e consome os
-microsservicos por rotas \texttt{/api/*}.
+\url{http://localhost:8003}. A tela inicial e servida pelo Gateway e consome os
+microsservicos por rotas \path{/api/*}.
 
 \begin{enumerate}
     \item \textbf{Tela inicial e busca}: o usuario visualiza a listagem de imoveis e
