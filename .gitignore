@@ -89,6 +89,7 @@ Desktop.ini
 *.bcf
 *.xdv
 docs/*.pdf
+!docs/relatorio.pdf
 
 # Ferramentas locais baixadas para compilacao (ex.: Tectonic)
 .tools/
