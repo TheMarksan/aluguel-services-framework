@@ -23,6 +23,8 @@
 \usepackage{fancyhdr}
 \usepackage{titlesec}
 \usepackage{caption}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shapes.geometric}
 
 % --------------------------- Hyperlinks -----------------------------------
 \hypersetup{
@@ -48,6 +50,38 @@
     showstringspaces=false,
     tabsize=2,
     captionpos=b
+}
+
+% Inclui codigo externo quando o arquivo esta disponivel. Quando o relatorio
+% e compilado fora do monorepo (ex.: main.tex no Overleaf), evita erro fatal.
+\newcommand{\safeinputlisting}[3]{%
+    \IfFileExists{#3}{%
+        \lstinputlisting[language=#1,caption={#2}]{#3}%
+    }{%
+        \par\noindent\textbf{#2}\par
+        \noindent\fbox{%
+            \begin{minipage}{0.95\textwidth}
+                \small
+                Arquivo de codigo disponivel no repositorio GitHub:\par
+                \url{https://github.com/TheMarksan/aluguel-services-framework}\par
+                Caminho no projeto: \texttt{\detokenize{#3}}
+            \end{minipage}%
+        }\par\medskip
+    }%
+}
+
+\newcommand{\safeincludegraphics}[2]{%
+    \IfFileExists{#2}{%
+        \includegraphics[width=#1]{#2}%
+    }{%
+        \fbox{%
+            \begin{minipage}[c][0.20\textheight][c]{#1}
+                \centering
+                \small Diagrama disponivel no repositorio GitHub.\par
+                Arquivo esperado: \texttt{\detokenize{#2}}
+            \end{minipage}%
+        }%
+    }%
 }
 
 % ------------------------- Cabecalho/Rodape -------------------------------
@@ -113,9 +147,23 @@ um \textit{API Gateway}.
 % ==========================================================================
 \section{Planejamento Scrum por Prioridades}
 % ==========================================================================
-O desenvolvimento seguiu uma abordagem agil incremental, organizada em um
+\subsection{Metodologia Agil Escolhida: Scrum}
+A metodologia agil escolhida foi o \textbf{Scrum}, adaptado para uma dupla e para o
+calendario da disciplina. O projeto foi dividido em sprints curtas, cada uma com uma
+meta objetiva, um incremento entregavel e registro em branch/commit. O acompanhamento
+foi feito por backlog priorizado, validacao incremental e revisao do incremento ao
+final de cada etapa.
+
+No contexto do trabalho, os papeis foram simplificados: a dupla atuou como time de
+desenvolvimento; os requisitos da disciplina funcionaram como \textit{Product Owner};
+e a revisao de cada entrega funcionou como validacao da sprint. Essa adaptacao manteve
+o foco principal do Scrum: entregar valor em ciclos curtos, inspecionar o que foi feito
+e ajustar a proxima etapa.
+
+\subsection{Product Backlog}
+O desenvolvimento seguiu uma abordagem incremental, organizada em um
 \textit{Product Backlog} priorizado. Cada item foi tratado como uma \textit{Sprint}
-curta, com entrega versionada (branch + commit) ao final de cada etapa.
+curta, com entrega versionada ao final de cada etapa.
 
 \begin{longtable}{c p{7.5cm} c}
     \toprule
@@ -131,6 +179,24 @@ curta, com entrega versionada (branch + commit) ao final de cada etapa.
     7 (Baixa) & Front-end integrado no Gateway (Blade/HTML) consumindo o ecossistema. & Concluido \\
     \bottomrule
     \caption{Product Backlog priorizado do framework.}
+\end{longtable}
+
+\subsection{Sprint Backlog por Sprint}
+\begin{longtable}{c p{4.2cm} p{7.2cm} c}
+    \toprule
+    \textbf{Sprint} & \textbf{Meta} & \textbf{Itens do Sprint Backlog} & \textbf{Entrega} \\
+    \midrule
+    \endhead
+    1 & Inicializar o monorepo & Criar estrutura de pastas; adicionar \texttt{README}; preparar relatorio em LaTeX; definir escopo e arquitetura inicial. & Base do projeto \\
+    2 & Implementar Gateway & Criar \texttt{gateway}; configurar roteamento \texttt{/api/*}; implementar cliente HTTP via cURL; servir a view principal. & Gateway funcional \\
+    3 & Implementar autenticacao & Criar \texttt{ms-auth}; modelar usuarios; implementar cadastro, login, JWT, validacao de token e seed administrativo. & Auth JWT \\
+    4 & Implementar catalogo & Criar \texttt{ms-catalogo}; modelar imoveis; implementar CRUD, filtros, validacoes e vinculo logico com proprietario. & Catalogo REST \\
+    5 & Implementar framework de reservas & Criar \texttt{ms-reservas}; implementar \texttt{RentEngine}; definir frozen spots e hotspots; criar persistencia de reservas. & Nucleo reutilizavel \\
+    6 & Criar aplicacoes concretas & Implementar \texttt{VacationRent}; implementar \texttt{LongTermRent}; adicionar \texttt{CreditCheckComponent}; registrar modalidades na fabrica. & Duas aplicacoes por reuso \\
+    7 & Integrar interface e seguranca & Criar front-end integrado no Gateway; consumir Auth, Catalogo e Reservas; proteger rotas de escrita via validacao JWT. & Sistema integrado \\
+    \bottomrule
+    \caption{Sprint Backlog resumido por sprint.}
+    \label{tab:sprint_backlog}
 \end{longtable}
 
 \subsection{Justificativa das Prioridades}
@@ -156,7 +222,16 @@ O projeto aplica multiplas tecnicas de reuso, em diferentes niveis de granularid
     em \texttt{LongTermRent} por composicao, evitando heranca rigida e favorecendo flexibilidade.
     \item[Reuso de Servicos (SOA)] A arquitetura de microsservicos permite que
     autenticacao e catalogo sejam reutilizados por qualquer cliente do ecossistema.
+    \item[Componentes de Software] O \texttt{CreditCheckComponent} representa um
+    componente plugavel do framework: ele encapsula uma regra especifica, e e usado por
+    composicao somente pela aplicacao que precisa de analise de credito.
 \end{description}
+
+Assim, as tecnicas de reuso utilizadas foram: \textbf{framework de aplicacao},
+\textbf{microsservicos}, \textbf{componentes de software}, \textbf{Template Method},
+\textbf{heranca} e \textbf{composicao}. O framework fornece o fluxo comum; os
+microsservicos separam capacidades reutilizaveis; e os hotspots permitem adaptar o
+comportamento sem reescrever a engine.
 
 % ==========================================================================
 \section{Arquitetura da Solucao}
@@ -192,6 +267,163 @@ ms-auth  ms-catalogo  ms-reservas
 db_auth   db_catalogo  db_reservas
 \end{lstlisting}
 
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.9\textwidth}{framework-diagram.png}
+    \caption{Diagrama de classes estrutural do framework, com a classe de framework e os componentes de software.}
+    \label{fig:framework_geral}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.72\textwidth}{ms-auth.png}
+    \caption{Diagrama de classes do componente de autenticacao ms-auth.}
+    \label{fig:ms_auth}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.55\textwidth}{ms-catalogo.png}
+    \caption{Diagrama de classes do componente de catalogo ms-catalogo.}
+    \label{fig:ms_catalogo}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.95\textwidth}{ms-reservas.png}
+    \caption{Diagrama de classes do componente de reservas, com Template Method, hotspots e modalidades concretas.}
+    \label{fig:ms_reservas}
+\end{figure}
+
+\subsection{Diagramas de Casos de Uso}
+Os diagramas de casos de uso mostram a visao funcional do sistema e do nucleo
+reutilizavel do framework. No sistema completo, os atores acessam apenas o Gateway; a
+partir dele, as funcionalidades acionam os microsservicos de autenticacao, catalogo e
+reservas.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.82,
+        every node/.style={transform shape},
+        actor/.style={align=center,font=\small\bfseries},
+        usecase/.style={ellipse,draw=blue!65,fill=blue!5,minimum width=3.4cm,minimum height=1.05cm,align=center,font=\small},
+        link/.style={draw=gray!70,thick}
+    ]
+        \draw[rounded corners,thick,draw=teal!70,fill=gray!3] (1.6,-0.4) rectangle (14.2,-8.2);
+        \node[font=\bfseries\large,teal!70!black] at (7.9,-0.8) {Framework Aluguel Hub};
+
+        \node[actor] (visitante) at (0,-1.5) {Visitante};
+        \node[actor] (locatario) at (0,-5.6) {Locatario};
+        \node[actor] (locador) at (15.9,-1.5) {Locador};
+        \node[actor] (admin) at (15.9,-5.6) {Admin};
+
+        \node[usecase] (buscar) at (4.7,-1.7) {Buscar e filtrar\\imoveis};
+        \node[usecase] (detalhar) at (10.9,-1.7) {Visualizar detalhes\\do imovel};
+        \node[usecase] (login) at (4.7,-3.35) {Cadastrar / Entrar\\no sistema};
+        \node[usecase] (reservar) at (10.9,-3.35) {Criar reserva\\por temporada};
+        \node[usecase] (longa) at (4.7,-5.15) {Criar reserva de\\longa duracao};
+        \node[usecase] (anuncio) at (10.9,-5.15) {Cadastrar e editar\\anuncios};
+        \node[usecase] (acompanhar) at (4.7,-7.0) {Acompanhar\\reservas};
+        \node[usecase] (gerenciar) at (10.9,-7.0) {Gerenciar usuarios\\e anuncios};
+
+        \draw[link] (visitante) -- (buscar);
+        \draw[link] (visitante) -- (detalhar);
+        \draw[link] (visitante) -- (login);
+        \draw[link] (locatario) -- (buscar);
+        \draw[link] (locatario) -- (reservar);
+        \draw[link] (locatario) -- (longa);
+        \draw[link] (locatario) -- (acompanhar);
+        \draw[link] (locador) -- (login);
+        \draw[link] (locador) -- (anuncio);
+        \draw[link] (locador) -- (acompanhar);
+        \draw[link] (admin) -- (gerenciar);
+        \draw[link] (admin) -- (anuncio);
+    \end{tikzpicture}
+    \caption{Diagrama de casos de uso do sistema de aluguel whitelabel.}
+    \label{fig:casos_uso_sistema}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.86,
+        every node/.style={transform shape},
+        actor/.style={align=center,font=\small\bfseries},
+        usecase/.style={ellipse,draw=cyan!65!black,fill=cyan!5,minimum width=3.7cm,minimum height=1.05cm,align=center,font=\small},
+        link/.style={draw=gray!70,thick},
+        include/.style={draw=teal!70!black,thick,dashed}
+    ]
+        \draw[rounded corners,thick,draw=teal!70,fill=gray!3] (1.6,-0.4) rectangle (14.2,-7.4);
+        \node[font=\bfseries\large,teal!70!black] at (7.9,-0.8) {ms-reservas / RentEngine};
+
+        \node[actor] (cliente) at (0,-3.5) {Cliente};
+        \node[actor] (dev) at (15.9,-3.5) {Desenvolvedor};
+
+        \node[usecase] (solicitar) at (4.7,-1.75) {Solicitar\\reserva};
+        \node[usecase] (selecionar) at (10.9,-1.75) {Selecionar\\modalidade};
+        \node[usecase] (validar) at (4.7,-3.45) {Validar\\disponibilidade};
+        \node[usecase] (preco) at (10.9,-3.45) {Calcular preco\\(hotspot)};
+        \node[usecase] (regras) at (4.7,-5.15) {Aplicar regras\\de negocio};
+        \node[usecase] (persistir) at (10.9,-5.15) {Persistir reserva\\(frozen spot)};
+        \node[usecase] (nova) at (4.7,-6.85) {Criar nova\\aplicacao};
+        \node[usecase] (factory) at (10.9,-6.85) {Registrar na\\EngineFactory};
+
+        \draw[link] (cliente) -- (solicitar);
+        \draw[link] (cliente) -- (validar);
+        \draw[link] (cliente) -- (persistir);
+        \draw[link] (dev) -- (nova);
+        \draw[link] (dev) -- (factory);
+        \draw[link] (dev) -- (preco);
+        \draw[link] (dev) -- (regras);
+
+        \draw[include] (solicitar) -- node[above,font=\scriptsize,teal!70!black] {$<<include>>$} (selecionar);
+        \draw[include] (selecionar) -- node[right,font=\scriptsize,teal!70!black] {$<<include>>$} (preco);
+        \draw[include] (nova) -- node[above,font=\scriptsize,teal!70!black] {$<<include>>$} (factory);
+    \end{tikzpicture}
+    \caption{Diagrama de casos de uso do framework de reservas e seus hotspots.}
+    \label{fig:casos_uso_framework}
+\end{figure}
+
+\subsection{Interfaces dos Componentes do Framework}
+A modelagem dos componentes considera suas interfaces de uso, isto e, os contratos
+publicos pelos quais cada componente e consumido dentro do framework.
+
+\begin{longtable}{l p{5.2cm} p{6cm}}
+    \toprule
+    \textbf{Componente} & \textbf{Interface/Contrato} & \textbf{Uso no Framework} \\
+    \midrule
+    \endhead
+    \texttt{AuthController} & \texttt{register}, \texttt{login}, \texttt{me}, \texttt{validate}, \texttt{logout}, \texttt{refresh} & Autenticacao, emissao e validacao de JWT para rotas protegidas. \\
+    \texttt{CatalogController} & \texttt{index}, \texttt{show}, \texttt{store}, \texttt{update}, \texttt{destroy} & Cadastro, consulta e manutencao dos imoveis disponiveis para reserva. \\
+    \texttt{RentEngine} & \texttt{processReservation} e hotspots protegidos & Classe do framework que fixa o fluxo de reserva e permite adaptacao por subclasses. \\
+    \texttt{CreditCheckComponent} & \texttt{evaluate} & Componente reutilizavel de analise de credito usado por composicao na modalidade de longa duracao. \\
+    \texttt{EngineFactory} & \texttt{create}, \texttt{supportedModalities} & Ponto de extensao que registra e instancia aplicacoes concretas do framework. \\
+    \bottomrule
+    \caption{Interfaces dos componentes usados no framework.}
+    \label{tab:interfaces_componentes}
+\end{longtable}
+
+\subsection{Listagem dos Microsservicos em Execucao}
+A tela principal do sistema, servida pelo Gateway em \texttt{http://localhost:8003},
+destaca o uso dos microsservicos por meio das rotas \texttt{/api/auth},
+\texttt{/api/imoveis} e \texttt{/api/reservas}. Para evidenciar os servicos em
+execucao, cada microsservico tambem expoe uma rota \texttt{/health}:
+
+\begin{lstlisting}[language=bash,caption={Verificacao dos microsservicos em execucao e suas portas.}]
+curl http://localhost:8000/health
+# {"service":"ms-auth","status":"ok"}
+
+curl http://localhost:8001/health
+# {"service":"ms-catalogo","status":"ok"}
+
+curl http://localhost:8002/health
+# {"service":"ms-reservas","status":"ok"}
+
+curl http://localhost:8003
+# Interface principal servida pelo API Gateway
+\end{lstlisting}
+
 % ==========================================================================
 \section{API Gateway}
 % ==========================================================================
@@ -209,6 +441,28 @@ Point}). Suas caracteristicas principais sao:
     integrado.
 \end{itemize}
 
+\subsection{Especificacao Documentada do API Gateway}
+O Gateway esta implementado em \texttt{gateway/src/Router.php}. Ele recebe toda
+requisicao externa, identifica o prefixo \texttt{/api/\{servico\}} e encaminha a
+chamada para o microsservico correto usando \texttt{HttpClient}. O corpo da requisicao,
+o metodo HTTP e o cabecalho \texttt{Authorization} sao preservados, mantendo a
+arquitetura stateless.
+
+\begin{lstlisting}[language=PHP,caption={Trecho documentado do roteamento central do Gateway.}]
+// Rotas iniciadas em /api/{servico}/... sao encaminhadas ao microsservico.
+// Rotas de escrita em imoveis/reservas exigem validacao JWT em ms-auth.
+$isProtected = ($service === 'imoveis' && in_array($method, ['POST', 'PUT', 'DELETE']))
+            || ($service === 'reservas' && in_array($method, ['POST', 'PUT', 'DELETE']));
+
+if ($isProtected) {
+    $authCheck = $this->http->forward('POST', $serviceMap['auth'] . '/validate', '', $headers);
+    if ($authCheck['status'] !== 200) {
+        $this->json(401, ['error' => 'Nao autorizado pelo Gateway.']);
+        return;
+    }
+}
+\end{lstlisting}
+
 \subsection{Microsservico de Autenticacao (ms-auth)}
 O \texttt{ms-auth} (porta 8000, banco \texttt{db\_auth}) e responsavel pela identidade
 do ecossistema. Implementa JWT no algoritmo HS256 de forma autocontida, expondo os
@@ -217,6 +471,17 @@ senhas sao armazenadas com \texttt{bcrypt} e o acesso a dados usa PDO com
 \textit{prepared statements}. Por ser stateless, o token viaja em cada requisicao
 (cabecalho \texttt{Authorization}), sendo repassado pelo Gateway aos demais servicos.
 
+\textbf{Especificacao da API do ms-auth:}
+\begin{itemize}
+    \item \texttt{POST /api/auth/register}: cadastra usuario comum com papel
+    \texttt{locador} ou \texttt{locatario}.
+    \item \texttt{POST /api/auth/login}: autentica email/senha e retorna JWT.
+    \item \texttt{GET /api/auth/me}: retorna dados do usuario autenticado.
+    \item \texttt{POST /api/auth/validate}: valida token para o Gateway.
+    \item \texttt{POST /api/auth/logout}: revoga token.
+    \item \texttt{POST /api/auth/refresh}: emite novo token.
+\end{itemize}
+
 \subsection{Microsservico de Catalogo (ms-catalogo)}
 O \texttt{ms-catalogo} (porta 8001, banco \texttt{db\_catalogo}) gerencia o cadastro de
 imoveis (casas e apartamentos) com uma API REST de CRUD: \texttt{GET /} (com filtros por
@@ -224,6 +489,33 @@ cidade, tipo e disponibilidade), \texttt{GET /\{id\}}, \texttt{POST /}, \texttt{
 /\{id\}} e \texttt{DELETE /\{id\}}. O relacionamento com o usuario proprietario
 (\texttt{owner\_id}) e logico, sem chave estrangeira fisica, respeitando o isolamento do
 padrao \textit{Database per Service}.
+
+\textbf{Especificacao da API do ms-catalogo:}
+\begin{itemize}
+    \item \texttt{GET /api/imoveis}: lista imoveis com filtros por cidade, tipo,
+    disponibilidade, paginacao e ordenacao.
+    \item \texttt{GET /api/imoveis/\{id\}}: detalha um imovel.
+    \item \texttt{POST /api/imoveis}: cria anuncio. Rota protegida para
+    \texttt{admin} ou \texttt{locador}.
+    \item \texttt{PUT /api/imoveis/\{id\}}: atualiza anuncio. Exige dono ou
+    administrador.
+    \item \texttt{DELETE /api/imoveis/\{id\}}: remove anuncio. Exige dono ou
+    administrador.
+\end{itemize}
+
+\subsection{Microsservico de Reservas (ms-reservas)}
+O \texttt{ms-reservas} (porta 8002, banco \texttt{db\_reservas}) contem a classe
+\texttt{RentEngine}, que e a classe de framework. A API recebe uma reserva e seleciona
+a aplicacao concreta pelo campo \texttt{modality}. As modalidades disponiveis sao
+\texttt{vacation} e \texttt{long\_term}.
+
+\textbf{Especificacao da API do ms-reservas:}
+\begin{itemize}
+    \item \texttt{GET /api/reservas}: lista reservas e informa modalidades suportadas.
+    \item \texttt{GET /api/reservas/\{id\}}: detalha uma reserva.
+    \item \texttt{POST /api/reservas}: cria reserva usando a engine escolhida por
+    \texttt{modality}. Rota protegida por token JWT no Gateway.
+\end{itemize}
 
 % ==========================================================================
 \section{Front-End Integrado}
@@ -253,6 +545,35 @@ A view consome exclusivamente as rotas \texttt{/api/*}:
 Assets em \texttt{gateway/public/assets/css/app.css} e \texttt{gateway/views/home.php}.
 
 % ==========================================================================
+\section{Tecnologias Utilizadas}
+% ==========================================================================
+\subsection{Tecnologias dos Microsservicos}
+\begin{longtable}{l l l p{5.2cm}}
+    \toprule
+    \textbf{Servico} & \textbf{Linguagem} & \textbf{Banco} & \textbf{Tecnologias} \\
+    \midrule
+    \endhead
+    \texttt{gateway} & PHP 8.2 & -- & Servidor embutido do PHP, cURL, HTML, CSS e JavaScript. \\
+    \texttt{ms-auth} & PHP 8.2 & MySQL \texttt{db\_auth} & PDO, JWT HS256, \texttt{bcrypt}, Composer e variaveis \texttt{.env}. \\
+    \texttt{ms-catalogo} & PHP 8.2 & MySQL \texttt{db\_catalogo} & PDO, API REST, filtros, paginacao, autorizacao por cabecalhos validados. \\
+    \texttt{ms-reservas} & PHP 8.2 & MySQL \texttt{db\_reservas} & Template Method, classes abstratas, heranca, composicao e Factory. \\
+    \bottomrule
+    \caption{Tecnologias por microsservico.}
+    \label{tab:tecnologias_microservicos}
+\end{longtable}
+
+\subsection{Tecnologias do Framework e das Aplicacoes}
+O framework foi implementado com PHP orientado a objetos, usando namespaces,
+\texttt{strict\_types}, classes \texttt{final}, classe abstrata, DTOs e repositorios.
+As aplicacoes construidas por reuso sao as modalidades \texttt{VacationRent} e
+\texttt{LongTermRent}. Ambas reutilizam a mesma engine, a mesma API de reservas, a
+mesma persistencia e a mesma integracao pelo Gateway.
+
+No front-end, a interface usa HTML, CSS e JavaScript servidos pelo Gateway. A interface
+principal permite autenticar o usuario, listar imoveis, aplicar filtros e criar
+reservas, evidenciando o uso integrado dos microsservicos.
+
+% ==========================================================================
 \section{Template Method e Hotspots}
 % ==========================================================================
 O nucleo de reuso e a classe abstrata \texttt{RentEngine}. Ela implementa o
@@ -268,7 +589,7 @@ ou \textit{hooks}) representam os pontos de variacao implementados por cada subc
     \textit{hooks}, definidos pelas subclasses.
 \end{description}
 
-\begin{lstlisting}[language=PHP,caption={Template Method implementado em \texttt{ms-reservas/src/Engine/RentEngine.php}.},label={lst:template}]
+\begin{lstlisting}[language=PHP,caption={Template Method implementado em ms-reservas/src/Engine/RentEngine.php.},label={lst:template}]
 abstract class RentEngine
 {
     // TEMPLATE METHOD: esqueleto invariante, final (nao sobrescrevivel)
@@ -357,6 +678,112 @@ temporada, enquanto \texttt{LongTermRent} adiciona, por composicao, o
 \texttt{CreditCheckComponent} dentro do \textit{hook} \texttt{applyBusinessRules()},
 demonstrando a combinacao de reuso por heranca e por composicao.
 
+\subsection{Aplicacao 1: Aluguel por Temporada}
+A primeira aplicacao concreta e \texttt{VacationRent}. Ela representa plataformas de
+aluguel por temporada, como imoveis para poucos dias. A aplicacao reutiliza os frozen
+spots da \texttt{RentEngine} e implementa o hotspot \texttt{calculatePrice()} com
+diarias, taxa de limpeza e adicional para estadias curtas.
+
+\begin{lstlisting}[language=PHP,caption={Hotspots implementados na aplicacao VacationRent.}]
+final class VacationRent extends RentEngine
+{
+    protected function modalityName(): string
+    {
+        return 'vacation';
+    }
+
+    protected function calculatePrice(ReservationRequest $request): float
+    {
+        $nights = $request->nights();
+        $subtotal = $nights * $request->dailyRate;
+
+        if ($nights <= 3) {
+            $subtotal *= 1.15;
+        }
+
+        return $subtotal + 120.0;
+    }
+}
+\end{lstlisting}
+
+\subsection{Aplicacao 2: Aluguel de Longa Duracao}
+A segunda aplicacao concreta e \texttt{LongTermRent}. Ela representa contratos
+residenciais longos. Alem de implementar o preco mensal, usa composicao com
+\texttt{CreditCheckComponent} para adaptar o processo pelo hotspot
+\texttt{applyBusinessRules()}.
+
+\begin{lstlisting}[language=PHP,caption={Hotspots implementados na aplicacao LongTermRent.}]
+final class LongTermRent extends RentEngine
+{
+    protected function modalityName(): string
+    {
+        return 'long_term';
+    }
+
+    protected function calculatePrice(ReservationRequest $request): float
+    {
+        $months = $request->months();
+        $subtotal = $months * $request->monthlyRate;
+        return $months >= 12 ? $subtotal * 0.90 : $subtotal;
+    }
+
+    protected function applyBusinessRules(ReservationRequest $request, float $price): void
+    {
+        $this->creditResult = $this->creditCheck->evaluate($request);
+    }
+
+    protected function resolveStatus(ReservationRequest $request, float $price): string
+    {
+        return ($this->creditResult['approved'] ?? false) ? 'confirmed' : 'pending';
+    }
+}
+\end{lstlisting}
+
+\subsection{Como Criar uma Nova Aplicacao Reusando o Framework}
+Para criar uma nova aplicacao, por exemplo aluguel corporativo, o desenvolvedor deve:
+
+\begin{enumerate}
+    \item Criar uma classe concreta em \texttt{ms-reservas/src/Modalities}.
+    \item Herdar de \texttt{RentEngine}.
+    \item Implementar os hotspots obrigatorios \texttt{modalityName()} e
+    \texttt{calculatePrice()}.
+    \item Sobrescrever hooks opcionais se a regra exigir validacao adicional,
+    status diferente, observacoes ou pos-processamento.
+    \item Registrar a nova modalidade em \texttt{EngineFactory}.
+\end{enumerate}
+
+\begin{lstlisting}[language=PHP,caption={Exemplo de nova aplicacao por reuso do framework.}]
+final class CorporateRent extends RentEngine
+{
+    protected function modalityName(): string
+    {
+        return 'corporate';
+    }
+
+    protected function calculatePrice(ReservationRequest $request): float
+    {
+        $months = $request->months();
+        $base = $months * $request->monthlyRate;
+        return $base + 500.0; // taxa de administracao corporativa
+    }
+
+    protected function applyBusinessRules(ReservationRequest $request, float $price): void
+    {
+        // Hotspot opcional: validar CNPJ, contrato empresarial ou limite de ocupacao.
+    }
+}
+
+// Registro na fabrica:
+return match ($modality) {
+    'vacation' => new VacationRent($repository),
+    'long_term' => new LongTermRent($repository),
+    'corporate' => new CorporateRent($repository),
+};
+\end{lstlisting}
+
+O restante do processo permanece reaproveitado: validacao base, disponibilidade,
+persistencia, retorno padronizado e exposicao via \texttt{POST /api/reservas}.
+
 % ==========================================================================
 \section{Guia do Desenvolvedor}
 % ==========================================================================
@@ -384,6 +811,153 @@ mysql -u root -p < ms-reservas/sql/db_reservas.sql
 Para criar uma nova modalidade de aluguel, basta criar uma subclasse de
 \texttt{RentEngine} e implementar os \textit{hotspots}, sem alterar o fluxo principal,
 respeitando o \textit{Open/Closed Principle}.
+
+% ==========================================================================
+\section{Funcionamento do Sistema}
+% ==========================================================================
+\subsection{Passo a Passo das Telas}
+O funcionamento do sistema ocorre a partir da interface principal em
+\texttt{http://localhost:8003}. A tela inicial e servida pelo Gateway e consome os
+microsservicos por rotas \texttt{/api/*}.
+
+\begin{enumerate}
+    \item \textbf{Tela inicial e busca}: o usuario visualiza a listagem de imoveis e
+    aplica filtros por cidade, tipo, preco, quartos, area e disponibilidade. A tela
+    usa o \texttt{ms-catalogo} via \texttt{GET /api/imoveis}.
+    \item \textbf{Login}: o usuario informa email e senha. O Gateway envia
+    \texttt{POST /api/auth/login} ao \texttt{ms-auth}; o token retornado fica no
+    \texttt{localStorage}.
+    \item \textbf{Cadastro/edicao de imovel}: usuarios \texttt{locador} ou
+    \texttt{admin} enviam dados do anuncio. O Gateway valida o token no
+    \texttt{ms-auth} e encaminha ao \texttt{ms-catalogo}.
+    \item \textbf{Reserva por temporada}: a tela envia \texttt{modality: vacation}.
+    O \texttt{ms-reservas} aciona \texttt{VacationRent}, calculando diarias, taxa de
+    limpeza e adicional de alta temporada.
+    \item \textbf{Reserva de longa duracao}: a tela envia
+    \texttt{modality: long\_term}. O \texttt{ms-reservas} aciona
+    \texttt{LongTermRent}, calcula mensalidades e chama o componente de analise de
+    credito.
+\end{enumerate}
+
+\subsection{Exemplos de Execucao das Duas Aplicacoes}
+\begin{lstlisting}[language=bash,caption={Criacao de reserva por temporada.}]
+curl -X POST http://localhost:8003/api/reservas \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer TOKEN" \
+  -d '{
+    "modality": "vacation",
+    "property_id": 1,
+    "check_in": "2026-07-10",
+    "check_out": "2026-07-13",
+    "daily_rate": 350,
+    "guests": 2
+  }'
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Criacao de reserva de longa duracao.}]
+curl -X POST http://localhost:8003/api/reservas \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer TOKEN" \
+  -d '{
+    "modality": "long_term",
+    "property_id": 1,
+    "check_in": "2026-08-01",
+    "check_out": "2027-08-01",
+    "monthly_rate": 4000,
+    "guests": 2,
+    "extras": { "monthly_income": 13000 }
+  }'
+\end{lstlisting}
+
+Esses dois exemplos demonstram que as aplicacoes mudam apenas os hotspots, enquanto o
+fluxo principal permanece o mesmo.
+
+\subsection{Telas do Sistema em Execucao}
+As figuras a seguir foram capturadas com os quatro servicos em execucao
+(\texttt{ms-auth}, \texttt{ms-catalogo}, \texttt{ms-reservas} e \texttt{gateway}) e
+com os bancos provisionados pelos scripts SQL do projeto.
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.95\textwidth}{screenshots/01-tela-inicial-explorar.png}
+    \caption{Tela inicial de exploracao e busca de imoveis.}
+    \label{fig:tela_inicial}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.85\textwidth}{screenshots/02-modal-login.png}
+    \caption{Modal de login consumindo o microsservico de autenticacao.}
+    \label{fig:tela_login}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.95\textwidth}{screenshots/03-tela-logada.png}
+    \caption{Tela principal apos autenticacao do usuario administrador.}
+    \label{fig:tela_logada}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.85\textwidth}{screenshots/04-modal-cadastro.png}
+    \caption{Modal de cadastro de usuario com escolha de perfil.}
+    \label{fig:tela_cadastro}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.95\textwidth}{screenshots/05-detalhe-imovel.png}
+    \caption{Tela de detalhes do imovel e chamada para reserva.}
+    \label{fig:tela_detalhe_imovel}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.85\textwidth}{screenshots/06-modal-reserva.png}
+    \caption{Modal de criacao de reserva usando as modalidades do framework.}
+    \label{fig:tela_modal_reserva}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.95\textwidth}{screenshots/07-meus-anuncios.png}
+    \caption{Tela de anuncios do usuario autenticado.}
+    \label{fig:tela_meus_anuncios}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.85\textwidth}{screenshots/08-modal-novo-anuncio.png}
+    \caption{Modal de cadastro de novo anuncio.}
+    \label{fig:tela_novo_anuncio}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \safeincludegraphics{0.95\textwidth}{screenshots/09-minhas-reservas.png}
+    \caption{Tela de reservas com uma reserva de longa duracao criada pelo framework.}
+    \label{fig:tela_minhas_reservas}
+\end{figure}
+
+% ==========================================================================
+\section{Repositorio GitHub}
+% ==========================================================================
+O codigo completo do projeto, incluindo framework, aplicacoes concretas,
+microsservicos, scripts SQL, front-end e relatorio, esta disponivel no GitHub:
+
+\begin{center}
+    \url{https://github.com/TheMarksan/aluguel-services-framework}
+\end{center}
+
+As instrucoes de execucao estao no \texttt{README.md}: instalar dependencias com
+Composer, criar os bancos com os scripts SQL, configurar os arquivos \texttt{.env} a
+partir dos \texttt{.env.example} e subir cada microsservico em sua porta.
+
+\subsection{Observacao sobre Video}
+O requisito de video de execucao e aplicavel apenas a frameworks para jogos. Como este
+projeto e um framework whitelabel para sistemas de aluguel de imoveis usando
+microsservicos, esse item nao se aplica.
 
 % ==========================================================================
 \section{Divisao de Responsabilidades e Pendencias}
@@ -417,7 +991,47 @@ JWT HS256); os itens da Tabela~\ref{tab:pendencias} representam o que efetivamen
 \end{table}
 
 % ==========================================================================
-\section{Referencias}
+\appendix
+\section{Anexos: Codigo dos Microsservicos}
+% ==========================================================================
+Esta secao referencia o codigo documentado dos principais arquivos de cada
+microsservico implementado. Os arquivos completos tambem estao no repositorio GitHub.
+
+\subsection{API Gateway}
+\safeinputlisting{PHP}{gateway/public/index.php}{../gateway/public/index.php}
+\safeinputlisting{PHP}{gateway/src/Router.php}{../gateway/src/Router.php}
+\safeinputlisting{PHP}{gateway/src/HttpClient.php}{../gateway/src/HttpClient.php}
+\safeinputlisting{PHP}{gateway/src/Config.php}{../gateway/src/Config.php}
+
+\subsection{Microsservico ms-auth}
+\safeinputlisting{PHP}{ms-auth/public/index.php}{../ms-auth/public/index.php}
+\safeinputlisting{PHP}{ms-auth/src/AuthController.php}{../ms-auth/src/AuthController.php}
+\safeinputlisting{PHP}{ms-auth/src/UserRepository.php}{../ms-auth/src/UserRepository.php}
+\safeinputlisting{PHP}{ms-auth/src/Jwt.php}{../ms-auth/src/Jwt.php}
+\safeinputlisting{PHP}{ms-auth/src/Database.php}{../ms-auth/src/Database.php}
+\safeinputlisting{SQL}{ms-auth/sql/db\_auth.sql}{../ms-auth/sql/db_auth.sql}
+
+\subsection{Microsservico ms-catalogo}
+\safeinputlisting{PHP}{ms-catalogo/public/index.php}{../ms-catalogo/public/index.php}
+\safeinputlisting{PHP}{ms-catalogo/src/CatalogController.php}{../ms-catalogo/src/CatalogController.php}
+\safeinputlisting{PHP}{ms-catalogo/src/PropertyRepository.php}{../ms-catalogo/src/PropertyRepository.php}
+\safeinputlisting{PHP}{ms-catalogo/src/Database.php}{../ms-catalogo/src/Database.php}
+\safeinputlisting{SQL}{ms-catalogo/sql/db\_catalogo.sql}{../ms-catalogo/sql/db_catalogo.sql}
+
+\subsection{Microsservico ms-reservas e Aplicacoes}
+\safeinputlisting{PHP}{ms-reservas/public/index.php}{../ms-reservas/public/index.php}
+\safeinputlisting{PHP}{ms-reservas/src/ReservationController.php}{../ms-reservas/src/ReservationController.php}
+\safeinputlisting{PHP}{ms-reservas/src/Engine/RentEngine.php}{../ms-reservas/src/Engine/RentEngine.php}
+\safeinputlisting{PHP}{ms-reservas/src/Engine/EngineFactory.php}{../ms-reservas/src/Engine/EngineFactory.php}
+\safeinputlisting{PHP}{ms-reservas/src/Modalities/VacationRent.php}{../ms-reservas/src/Modalities/VacationRent.php}
+\safeinputlisting{PHP}{ms-reservas/src/Modalities/LongTermRent.php}{../ms-reservas/src/Modalities/LongTermRent.php}
+\safeinputlisting{PHP}{ms-reservas/src/Components/CreditCheckComponent.php}{../ms-reservas/src/Components/CreditCheckComponent.php}
+\safeinputlisting{PHP}{ms-reservas/src/ReservationRepository.php}{../ms-reservas/src/ReservationRepository.php}
+\safeinputlisting{SQL}{ms-reservas/sql/db\_reservas.sql}{../ms-reservas/sql/db_reservas.sql}
+
+% ==========================================================================
+\section*{Referencias}
+\addcontentsline{toc}{section}{Referencias}
 % ==========================================================================
 \begin{thebibliography}{9}
 \bibitem{gof} GAMMA, E. et al. \textit{Design Patterns: Elements of Reusable

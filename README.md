@@ -66,27 +66,119 @@ aluguel-services-framework/
 
 ## Guia Rápido (Quick Start)
 
-Cada serviço sobe com o servidor embutido do PHP. Em terminais separados:
+### 1. Configurar os arquivos `.env`
+
+Copie os exemplos de configuração e ajuste usuário/senha/porta do MySQL se necessário:
 
 ```bash
-# 1) Autenticação (db_auth)
-cd ms-auth      && composer install && php -S localhost:8000 -t public
-
-# 2) Catálogo (db_catalogo)
-cd ms-catalogo  && composer install && php -S localhost:8001 -t public
-
-# 3) Reservas (db_reservas)
-cd ms-reservas  && composer install && php -S localhost:8002 -t public
-
-# 4) Gateway (ponto de entrada do usuário)
-cd gateway      && composer install && php -S localhost:8003 -t public
+cp gateway/.env.example gateway/.env
+cp ms-auth/.env.example ms-auth/.env
+cp ms-catalogo/.env.example ms-catalogo/.env
+cp ms-reservas/.env.example ms-reservas/.env
 ```
 
-Acesse a aplicação em: **http://localhost:8003**
+Nos três microsserviços com banco (`ms-auth`, `ms-catalogo`, `ms-reservas`), confira:
+
+```env
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASS=
+```
+
+Em `ms-auth/.env`, troque também o `JWT_SECRET` por um valor forte.
+
+### 2. Instalar dependências PHP
+
+```bash
+(cd gateway && composer install)
+(cd ms-auth && composer install)
+(cd ms-catalogo && composer install)
+(cd ms-reservas && composer install)
+```
+
+### 3. Criar e popular os bancos
+
+Execute os scripts SQL a partir da raiz do projeto:
+
+```bash
+mysql -u root -p < ms-auth/sql/db_auth.sql
+mysql -u root -p < ms-catalogo/sql/db_catalogo.sql
+mysql -u root -p < ms-reservas/sql/db_reservas.sql
+```
+
+Depois crie o usuário administrador inicial:
+
+```bash
+(cd ms-auth && php seed.php)
+```
+
+Login do seed: `admin@aluguel.dev` / `admin123`.
+
+### 4. Subir os serviços
+
+Cada serviço roda em um terminal separado:
+
+```bash
+# Terminal 1 — Autenticação
+cd ms-auth && php -S localhost:8000 -t public
+
+# Terminal 2 — Catálogo
+cd ms-catalogo && php -S localhost:8001 -t public
+
+# Terminal 3 — Reservas
+cd ms-reservas && php -S localhost:8002 -t public
+
+# Terminal 4 — Gateway
+cd gateway && php -S localhost:8003 -t public
+```
+
+### 5. Testar a execução
+
+Verifique os microsserviços:
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8001/health
+curl http://localhost:8002/health
+```
+
+Abra a aplicação em: **http://localhost:8003**
 
 A interface web (servida pelo Gateway) inclui **hero com busca avançada**, filtros por
 tipo/local/preço/quartos, cards de imóveis e fluxo de reservas. Consome todo o
-ecossistema via `/api/*`. Login do seed: `admin@aluguel.dev` / `admin123`.
+ecossistema via `/api/*`.
+
+## Capturas de Tela
+
+As telas abaixo foram capturadas com o Gateway e os três microsserviços em execução,
+usando os dados de seed dos scripts SQL.
+
+### Tela inicial e busca
+
+![Tela inicial de exploração de imóveis](docs/screenshots/01-tela-inicial-explorar.png)
+
+### Autenticação
+
+![Modal de login](docs/screenshots/02-modal-login.png)
+
+![Tela principal com usuário autenticado](docs/screenshots/03-tela-logada.png)
+
+![Modal de cadastro de usuário](docs/screenshots/04-modal-cadastro.png)
+
+### Catálogo e reservas
+
+![Detalhe do imóvel](docs/screenshots/05-detalhe-imovel.png)
+
+![Modal de reserva](docs/screenshots/06-modal-reserva.png)
+
+![Tela de reservas](docs/screenshots/09-minhas-reservas.png)
+
+### Gestão de anúncios
+
+![Meus anúncios](docs/screenshots/07-meus-anuncios.png)
+
+![Modal de novo anúncio](docs/screenshots/08-modal-novo-anuncio.png)
 
 ### Front-end (Design via Figma MCP)
 

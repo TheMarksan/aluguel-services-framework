@@ -87,7 +87,11 @@ Desktop.ini
 *.blg
 *.run.xml
 *.bcf
+*.xdv
 docs/*.pdf
+
+# Ferramentas locais baixadas para compilacao (ex.: Tectonic)
+.tools/
 
 # --------------------------------------------------------------------------
 # Banco de dados local / dumps temporarios
