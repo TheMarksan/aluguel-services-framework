@@ -140,7 +140,9 @@ final class ReservationController
     /** Comunica com o ms-catalogo para buscar os precos oficiais */
     private function fetchPropertyFromCatalog(int $propertyId): ?array
     {
-        $url = "http://localhost:8001/" . $propertyId;
+        $catalogUrl = \MsReservas\Config::get('MS_CATALOGO_URL', 'http://localhost:8001');
+        
+        $url = rtrim($catalogUrl, '/') . '/' . $propertyId;
         
         $context = stream_context_create(['http' => ['ignore_errors' => true]]);
         $response = @file_get_contents($url, false, $context);
