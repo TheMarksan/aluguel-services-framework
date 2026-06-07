@@ -15,8 +15,8 @@ final class PropertyRepository
     {
     }
 
-    /**
-     * Lista imoveis com filtros opcionais (city, type, available).
+/**
+     * Lista imoveis com filtros opcionais, paginacao e ordenacao.
      *
      * @param array<string,string> $filters
      * @return array<int,array<string,mixed>>
@@ -43,7 +43,17 @@ final class PropertyRepository
         if ($conditions !== []) {
             $sql .= ' WHERE ' . implode(' AND ', $conditions);
         }
-        $sql .= ' ORDER BY created_at DESC';
+
+        $allowedSorts = ['created_at', 'daily_price', 'monthly_price'];
+        $sortBy = in_array($filters['sort_by'] ?? '', $allowedSorts, true) ? $filters['sort_by'] : 'created_at';
+        $sortDir = strtoupper($filters['sort_dir'] ?? '') === 'ASC' ? 'ASC' : 'DESC';
+        $sql .= " ORDER BY {$sortBy} {$sortDir}";
+
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $perPage = max(1, min(100, (int) ($filters['per_page'] ?? 10)));
+        $offset = ($page - 1) * $perPage;
+        
+        $sql .= " LIMIT {$perPage} OFFSET {$offset}";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
