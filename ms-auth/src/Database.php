@@ -9,7 +9,7 @@ use PDOException;
 use RuntimeException;
 
 /**
- * Fabrica de conexao PDO com o banco db_auth.
+ * Fabrica de conexao PDO com o banco de dados.
  */
 final class Database
 {
@@ -25,14 +25,14 @@ final class Database
             'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
             Config::get('DB_HOST', '127.0.0.1'),
             Config::get('DB_PORT', '3306'),
-            Config::get('DB_NAME', 'db_auth')
+            Config::get('DB_NAME', 'defaultdb')
         );
 
         try {
             self::$connection = new PDO(
                 $dsn,
                 Config::get('DB_USER', 'root'),
-                Config::get('DB_PASS', ''),
+                Config::get('DB_PASSWORD', ''),
                 [
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -40,7 +40,7 @@ final class Database
                 ]
             );
         } catch (PDOException $e) {
-            throw new RuntimeException('Falha ao conectar ao banco db_auth: ' . $e->getMessage());
+            throw new RuntimeException('Falha ao conectar ao banco de dados no ms-auth: ' . $e->getMessage());
         }
 
         return self::$connection;
