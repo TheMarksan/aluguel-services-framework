@@ -56,7 +56,7 @@ private function handleApi(string $method, string $path, string $uri): void
         $headers = $this->forwardableHeaders();
 
         $isProtected = ($service === 'imoveis' && in_array($method, ['POST', 'PUT', 'DELETE']))
-                    || ($service === 'reservas' && in_array($method, ['POST', 'PUT', 'DELETE']));
+                    || ($service === 'reservas');
 
         if ($isProtected) {
             $authUrl = $serviceMap['auth'] . '/validate';

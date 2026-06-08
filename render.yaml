@@ -1,0 +1,85 @@
+services:
+  - type: web
+    name: ms-auth
+    env: docker
+    rootDir: ms-auth
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: "defaultdb"
+      - key: JWT_SECRET
+        generateValue: true
+
+  - type: web
+    name: ms-catalogo
+    env: docker
+    rootDir: ms-catalogo
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: "defaultdb"
+
+  - type: web
+    name: ms-reservas
+    env: docker
+    rootDir: ms-reservas
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: "defaultdb"
+      - key: MS_CATALOGO_URL
+        fromService:
+          type: web
+          name: ms-catalogo
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: gateway
+    env: docker
+    rootDir: gateway
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MS_AUTH_URL
+        fromService:
+          type: web
+          name: ms-auth
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: MS_CATALOGO_URL
+        fromService:
+          type: web
+          name: ms-catalogo
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: MS_RESERVAS_URL
+        fromService:
+          type: web
+          name: ms-reservas
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: JWT_SECRET
+        fromService:
+          type: web
+          name: ms-auth
+          envVarKey: JWT_SECRET
